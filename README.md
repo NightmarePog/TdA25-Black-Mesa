@@ -44,7 +44,6 @@ Aplikace bude přístupná na `http://127.0.0.1:8080`
 
 Jak odevzdat svojí aplikaci můžete najít v našich [vzdělávacích materiálech](https://tourde.app/vzdelavaci-materialy/jak-odevzdavat)
 
-## Databáze
 
 V kontejneru je nakonfigurovaná sqlite3 databáze, jejíž obsah se ukládá do souboru
 db.sqlite3
