@@ -19,6 +19,10 @@ db.init_app(app)
 
 
 @app.route('/')
+def root_page():
+    return "Hello TdA"
+
+@app.route('/api')
 def hello_world():  # put application's code here
     return {"organization": "Student Cyber Games"}
 
