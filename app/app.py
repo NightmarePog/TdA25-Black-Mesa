@@ -22,9 +22,10 @@ db.init_app(app)
 def root_page():
     return "Hello TdA"
 
-@app.route('/api')
-def hello_world():  # put application's code here
-    return {"organization": "Student Cyber Games"}
+@app.route('/games', methods=['GET'])
+def hello_world():
+    # TODO creates new game
+    return None
 
 
 if __name__ == '__main__':
