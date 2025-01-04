@@ -45,7 +45,7 @@ def main_page():
     return "tady bude main page :3"
 
 @app.route('/game/<uuid>', methods=['GET'])
-def main_page(uuid):
+def game_page(uuid):
     return "tady bude hra :3"
 
 ## BACKEND
