@@ -38,7 +38,7 @@ def unprocessable_entity(error):
     return jsonify({"code": 422, "message": "Semantic error: " + str(error)}), 422
 
 # Routes
-@app.route('/api/v1/game', methods=['GET'])
+@app.route('/game', methods=['GET'])
 def main_page():
     return "200"
 
