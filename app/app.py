@@ -38,9 +38,17 @@ def unprocessable_entity(error):
     return jsonify({"code": 422, "message": "Semantic error: " + str(error)}), 422
 
 # Routes
+
+## FRONTEND
 @app.route('/game', methods=['GET'])
 def main_page():
-    return "200"
+    return "tady bude main page :3"
+
+@app.route('/game/<uuid>', methods=['GET'])
+def main_page(uuid):
+    return "tady bude hra :3"
+
+## BACKEND
 
 @app.route('/api/v1/games', methods=['POST'])
 def create_game():
