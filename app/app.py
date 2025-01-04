@@ -64,7 +64,7 @@ def get_all_games():
     games = Game.query.all()
     return jsonify([game_to_dict(game) for game in games]), 200
 
-@app.route('/api/v1/games/<uuid>', methods=['GET'])
+@app.route('/api/v1/game/<uuid>', methods=['GET'])
 def get_game(uuid):
     game = Game.query.get(uuid)
     if not game:
