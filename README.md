@@ -1,52 +1,38 @@
-# Tour de App - Django boiler plate
+# TDA25-BLACK-MESA
 
-Šablona pro vývoj aplikace pro Tour de App společně s vytvořením a nahráním výstupu
+# How Does It Work?
 
-## Lokální spuštění
+Šablona pro vývoj aplikace pro Tour de App společně s vytvořením a nahráním výstupu.
 
-### Pomocí pipenv
+## pipenv
+- pipenv ( `pip install --user pipenv`)
 
-#### Prerekvizity
+## Flask
+(`pip install Flask`)
+launch: venv\Scripts\activate
 
-- Python 3 (pokud nemáš python nainstalovaný, podívej se na https://naucse.python.cz/course/pyladies/)
-- pipenv (`pip install --user pipenv` pro Windows, https://pypi.org/project/pipenv/#installation pro Linux dle distribuce)
-
-#### Spuštění
-
-```
-pipenv install
-pipenv shell
-```
+## How to run application?
 
 ```
-python3 manage.py runserver 8000
+flask --app app/app.py init-db
+flask --app app/app.py run
 ```
+or just run
+Linux: start.sh
+Windows: start.bat
 
-Aplikace bude přístupná na `http://127.0.0.1:8000`
+local application address: `http://127.0.0.1:5000`
 
-### Pomocí dockeru
-
-#### Prerekvizity
-
-- Docker
-- (Windows) aktivovaný wsl2
-
-#### Spuštění
+### Docker
 
 ```
-docker-build . -t tda-django
-docker run -p 8080:80 -v ${PWD}:/app tda-django
+docker build . -t tda-flask
+docker run -p 8080:80 -v ${PWD}:/app tda-flask
 ```
 
-Aplikace bude přístupná na `http://127.0.0.1:8080`
+local application address: `http://127.0.0.1:8080`
 
-## Odevzdání
-
-Jak odevzdat svojí aplikaci můžete najít v našich [vzdělávacích materiálech](https://tourde.app/vzdelavaci-materialy/jak-odevzdavat)
-
-## Databáze
-
-V kontejneru je nakonfigurovaná sqlite3 databáze, jejíž obsah se ukládá do souboru
-db.sqlite3
-
-Nastavení databáze lze upravit v souboru settings.py
+## useful recources
+[Tour De App](https://tourde.app/)
+[task](https://tourde.app/zadani)
+[Repository](https://github.com/NightmarePog/TdA25-Black-Mesa)
