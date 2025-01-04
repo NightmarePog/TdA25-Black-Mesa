@@ -4,7 +4,7 @@ FROM python:3.10-buster
 
 WORKDIR /app
 
-RUN pip install pipenv
+RUN pip install pipenv flask flask-sqlalchemy flask-cors
 
 COPY Pipfile .
 COPY Pipfile.lock .
