@@ -38,7 +38,7 @@ def unprocessable_entity(error):
     return jsonify({"code": 422, "message": "Semantic error: " + str(error)}), 422
 
 # Routes
-@app.route('/games', methods=['POST'])
+@app.route('/api/v1/games', methods=['POST'])
 def create_game():
     data = request.get_json()
     try:
@@ -55,19 +55,19 @@ def create_game():
     except Exception as e:
         abort(422, description=str(e))
 
-@app.route('/games', methods=['GET'])
+@app.route('/api/v1/games', methods=['GET'])
 def get_all_games():
     games = Game.query.all()
     return jsonify([game_to_dict(game) for game in games]), 200
 
-@app.route('/games/<uuid>', methods=['GET'])
+@app.route('/api/v1/games/<uuid>', methods=['GET'])
 def get_game(uuid):
     game = Game.query.get(uuid)
     if not game:
         abort(404)
     return jsonify(game_to_dict(game)), 200
 
-@app.route('/games/<uuid>', methods=['PUT'])
+@app.route('/api/v1/games/<uuid>', methods=['PUT'])
 def update_game(uuid):
     game = Game.query.get(uuid)
     if not game:
@@ -84,7 +84,7 @@ def update_game(uuid):
     except Exception as e:
         abort(422, description=str(e))
 
-@app.route('/games/<uuid>', methods=['DELETE'])
+@app.route('/api/v1/games/<uuid>', methods=['DELETE'])
 def delete_game(uuid):
     game = Game.query.get(uuid)
     if not game:
