@@ -1,104 +1,110 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from uuid import uuid4
+from datetime import datetime
 
-# Inicializace Flask aplikace
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///games.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Konfigurace SQLite databáze
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///games.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-
-# Databázový model
+# Models
 class Game(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    difficulty = db.Column(db.String(50), nullable=False)
-    size = db.Column(
-        db.String(10), nullable=False
-    )  # Velikost herní desky (např. "6x6")
-    occupied = db.Column(
-        db.Text, nullable=False
-    )  # Statistika obsazených polí (JSON formát)
+    uuid = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    name = db.Column(db.String(255), nullable=False)
+    difficulty = db.Column(db.String(20), nullable=False)
+    game_state = db.Column(db.String(20), nullable=False, default='unknown')
+    board = db.Column(db.JSON, nullable=False)
 
+# Database initialization
+def create_tables():
+    with app.app_context():  # Ensure the app context is active
+        db.create_all()
 
-# Inicializace databáze
-with app.app_context():
-    db.create_all()
+# Error handlers
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({"code": 400, "message": "Bad request: " + str(error)}), 400
 
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"code": 404, "message": "Resource not found"}), 404
 
-@app.route("/games/<int:id>", methods=["PUT"])
-def update_game(id):
-    game = Game.query.get_or_404(
-        id
-    )  # Najde hru podle ID, pokud neexistuje, vrátí chybu 404
-    data = request.get_json()  # Získá data z těla požadavku
+@app.errorhandler(422)
+def unprocessable_entity(error):
+    return jsonify({"code": 422, "message": "Semantic error: " + str(error)}), 422
 
-    # Aktualizuje atributy hry podle nových dat
-    game.name = data.get("name", game.name)
-    game.difficulty = data.get("difficulty", game.difficulty)
-    game.size = data.get("size", game.size)
-    game.occupied = data.get("occupied", game.occupied)
-
-    db.session.commit()  # Uloží změny do databáze
-
-    return jsonify({"message": "Game updated!"})
-
-
-# API endpointy
-@app.route("/games", methods=["GET"])
-def get_games():
-    games = Game.query.all()  # Získá všechny hry z databáze
-    return jsonify(
-        [
-            {
-                "id": game.id,
-                "name": game.name,
-                "difficulty": game.difficulty,
-                "size": game.size,
-                "occupied": game.occupied,
-            }
-            for game in games  # Iteruje přes všechny hry a vytváří seznam slovníků
-        ]
-    )
-
-
-@app.route("/games", methods=["POST"])
+# Routes
+@app.route('/games', methods=['POST'])
 def create_game():
     data = request.get_json()
-    new_game = Game(
-        name=data["name"],
-        difficulty=data["difficulty"],
-        size=data["size"],  # Velikost herní desky (např. "6x6")
-        occupied=data["occupied"],  # Statistika obsazených polí ve formátu JSON
-    )
-    db.session.add(new_game)
-    db.session.commit()
-    return jsonify({"message": "Game created!"}), 201
+    try:
+        game = Game(
+            name=data['name'],
+            difficulty=data['difficulty'],
+            board=data['board']
+        )
+        db.session.add(game)
+        db.session.commit()
+        return jsonify(game_to_dict(game)), 201
+    except KeyError as e:
+        abort(400, description=f"Missing field: {str(e)}")
+    except Exception as e:
+        abort(422, description=str(e))
 
+@app.route('/games', methods=['GET'])
+def get_all_games():
+    games = Game.query.all()
+    return jsonify([game_to_dict(game) for game in games]), 200
 
-@app.route("/games/<int:id>", methods=["GET"])
-def get_game(id):
-    game = Game.query.get_or_404(id)
-    return jsonify(
-        {
-            "id": game.id,
-            "name": game.name,
-            "difficulty": game.difficulty,
-            "size": game.size,
-            "occupied": game.occupied,
-        }
-    )
+@app.route('/games/<uuid>', methods=['GET'])
+def get_game(uuid):
+    game = Game.query.get(uuid)
+    if not game:
+        abort(404)
+    return jsonify(game_to_dict(game)), 200
 
+@app.route('/games/<uuid>', methods=['PUT'])
+def update_game(uuid):
+    game = Game.query.get(uuid)
+    if not game:
+        abort(404)
+    data = request.get_json()
+    try:
+        game.name = data['name']
+        game.difficulty = data['difficulty']
+        game.board = data['board']
+        db.session.commit()
+        return jsonify(game_to_dict(game)), 200
+    except KeyError as e:
+        abort(400, description=f"Missing field: {str(e)}")
+    except Exception as e:
+        abort(422, description=str(e))
 
-@app.route("/games/<int:id>", methods=["DELETE"])
-def delete_game(id):
-    game = Game.query.get_or_404(id)
+@app.route('/games/<uuid>', methods=['DELETE'])
+def delete_game(uuid):
+    game = Game.query.get(uuid)
+    if not game:
+        abort(404)
     db.session.delete(game)
     db.session.commit()
-    return jsonify({"message": "Game deleted!"})
+    return '', 204
 
+# Helper function
+def game_to_dict(game):
+    return {
+        "uuid": game.uuid,
+        "createdAt": game.created_at.isoformat(),
+        "updatedAt": game.updated_at.isoformat(),
+        "name": game.name,
+        "difficulty": game.difficulty,
+        "gameState": game.game_state,
+        "board": game.board
+    }
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    create_tables()  # Volání funkce pro vytvoření tabulek
     app.run(debug=True)
