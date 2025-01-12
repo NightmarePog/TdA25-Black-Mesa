@@ -19,11 +19,6 @@ class Game(db.Model):
     game_state = db.Column(db.String(20), nullable=False, default='unknown')
     board = db.Column(db.JSON, nullable=False)
 
-# Database initialization
-def create_tables():
-    with app.app_context():  # Ensure the app context is active
-        db.create_all()
-
 # Error handlers
 @app.errorhandler(400)
 def bad_request(error):
@@ -37,7 +32,6 @@ def not_found(error):
 def unprocessable_entity(error):
     return jsonify({"code": 422, "message": "Semantic error: " + str(error)}), 422
 
-# Routes
 
 ## FRONTEND
 @app.route('/game', methods=['GET'])
@@ -48,8 +42,7 @@ def main_page():
 def game_page(uuid):
     return "tady bude hra :3"
 
-## BACKEND
-
+# Routes
 @app.route('/api/v1/games', methods=['POST'])
 def create_game():
     data = request.get_json()
@@ -117,6 +110,10 @@ def game_to_dict(game):
         "board": game.board
     }
 
+# Ruční inicializace databáze
+with app.app_context():
+    db.create_all()
+    print("Databáze byla inicializována.")
+
 if __name__ == '__main__':
-    create_tables()  # Volání funkce pro vytvoření tabulek
     app.run(debug=True)
