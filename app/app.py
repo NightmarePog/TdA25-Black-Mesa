@@ -83,6 +83,31 @@ def is_blocked_or_oblique_four(board, row, col, direction):
 
     return True  # Blocked
 
+def can_win_with_one_move(board, row, col, direction):
+    """Check if adding one move can create a 5-in-a-row."""
+    dr, dc = direction
+    player = board[row][col]
+    length = len(board)
+
+    positions = []
+    for i in range(5):
+        nr, nc = row + dr * i, col + dc * i
+        if 0 <= nr < length and 0 <= nc < length:
+            positions.append((nr, nc))
+
+    if len(positions) < 5:
+        return False
+
+    # Check for a pattern like "XX XX" or similar
+    values = [board[r][c] for r, c in positions]
+    empty_count = sum(1 for value in values if value == "")
+    player_count = sum(1 for value in values if value == player)
+
+    if empty_count == 1 and player_count == 4:
+        return True
+
+    return False
+
 def check_for_five_and_oblique(board):
     """Check if there is a chance to win with 5 in a row or a valid oblique 4-in-a-row."""
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)]  # All directions
@@ -91,6 +116,8 @@ def check_for_five_and_oblique(board):
             if board[r][c] != "":
                 for direction in directions:
                     if not is_blocked_or_oblique_four(board, r, c, direction):
+                        return True
+                    if can_win_with_one_move(board, r, c, direction):
                         return True
     return False
 
@@ -104,8 +131,10 @@ def determine_game_state(board):
     o_count = sum(cell == "O" for row in board for cell in row)
     if x_count + o_count <= 5:
         return "Zahájení"
-    
+
     return "Middle game"
+
+
 
 
 
