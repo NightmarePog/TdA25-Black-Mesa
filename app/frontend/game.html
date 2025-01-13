@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details</title>
+</head>
+<body>
+    <h1>Detail hry</h1>
+    <pre id="game-info"></pre>
+    <script>
+        // Přímé vkládání proměnné jako JSON string
+        const gameData = JSON.parse('{{ game | tojson | safe }}');
+
+        // Zobrazení herních dat na stránce
+        document.getElementById('game-info').textContent = JSON.stringify(gameData, null, 2);
+    </script>
+</body>
+</html>
