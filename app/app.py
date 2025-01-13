@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort, render_template
+from flask import Flask, request, jsonify, abort, render_template, redirect, session, request
 from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
 from datetime import datetime
@@ -76,17 +76,20 @@ def register_user():
             player = User(
                 username=data['username'],
                 login_by=data['loginBy'],
-                email="guest",
+                email= str(uuid4()),
                 password_hash="guest"
             )
 
             db.session.add(player)
             db.session.commit()
-            return jsonify({"message": "User registered successfully", "id": player.id}), 201
+            return jsonify({"message": "User registered successfully", "id": player.id, "username": player.username}), 201
         else:
             # Validace vstupních dat
             if not data.get('username') or not data.get('email'):
                 abort(400, description="Username and email are required")
+                
+            if not data.get('password') and data['loginBy'] == "1":
+                abort(400, description="Password is required")
             
             # Kontrola, zda už uživatel existuje
             if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
@@ -105,7 +108,7 @@ def register_user():
 
             db.session.add(player)
             db.session.commit()
-            return jsonify({"message": "User registered successfully", "id": player.id}), 201
+            return jsonify({"message": "User registered successfully", "id": player.id, "username": player.username}), 201
     except KeyError as e:
         abort(400, description=f"Missing field: {str(e)}")
     except Exception as e:
@@ -123,7 +126,7 @@ def login_user():
         player = User.query.filter_by(email=data['email']).first()
         if not player:
             abort(404, description="User not found")
-        elif player.email == "guest":
+        elif player.password_hash == "guest":
             return jsonify({"message": "Cannot log in as a guest", "id": None}), 400
         
         # Pokud se přihlašujeme prostřednictvím vlastní metody (email + heslo)
@@ -131,7 +134,7 @@ def login_user():
             abort(400, description="Invalid credentials")
 
         # Představme si, že úspěšné přihlášení znamená vrácení ID a nějakého tokenu (v reálném světě by to bylo JWT nebo podobně)
-        return jsonify({"message": "Login successful", "id": player.id}), 200
+        return jsonify({"message": "Login successful", "id": player.id, "username": player.username}), 200
 
     except KeyError as e:
         abort(400, description=f"Missing field: {str(e)}")
@@ -139,29 +142,16 @@ def login_user():
         abort(422, description=str(e))
 
 # Endpoint pro smazání účtu uživatele
-@app.route('/api/v1/users/delete', methods=['DELETE'])
-def delete_user():
-    data = request.get_json()
-    try:
-        # Ověření, že je poskytnuto ID uživatele
-        if not data.get('id'):
-            abort(400, description="User ID is required")
+@app.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
 
-        # Vyhledání hráče podle ID
-        player = User.query.get(data['id'])
-        if not player:
-            abort(404, description="User not found")
-        
-        # Smazání uživatele
-        db.session.delete(player)
-        db.session.commit()
-        
-        return jsonify({"message": "User deleted successfully"}), 200
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'User deleted'}), 200
 
-    except KeyError as e:
-        abort(400, description=f"Missing field: {str(e)}")
-    except Exception as e:
-        abort(422, description=str(e))
 
 
 # Endpoint pro získání detailu hráče
@@ -389,6 +379,18 @@ def game_to_dict(game):
 @app.route('/game', methods=['GET'])
 def main_page():
     return render_template('main.html')
+
+@app.route('/', methods=['GET'])
+def start_page():
+    return redirect("/login")
+
+@app.route('/login', methods=['GET'])
+def login_page():
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET'])
+def register_page():
+    return render_template('register.html')
 
 @app.route('/game/<uuid>', methods=['GET'])
 def game_page(uuid):
