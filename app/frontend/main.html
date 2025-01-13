@@ -79,61 +79,75 @@
         const userId = localStorage.getItem('userId');
         const username = localStorage.getItem('username');
         const isGuest = localStorage.getItem('isGuest') === 'true';
-
+    
         if (!userId) {
-            // Pokud není přihlášený, přesměruj na login
+            // Přesměrování, pokud uživatel není přihlášen
             window.location.href = '/login';
         } else {
-            // Pokud je přihlášený, zobraz jméno
+            // Zobrazení jména uživatele
             document.getElementById('nickname').textContent = username || 'Unknown Player';
-            if (localStorage.getItem('guestLogout')) {
-                deleteGuestAccount();
-                localStorage.clear(); // Odstraní všechna data pro aktuálního uživatele
-                window.location.href = '/login';
-            }
         }
-
-        // Odhlášení uživatele
-        document.getElementById('logout').addEventListener('click', () => {
-            handleLogout();
-        });
-
-        // Smazání guest účtu při zavření všech oken
+    
+        // Klíč pro správu počítadla aktivních záložek
+        const sessionKey = `activeTabs_${userId}`;
+        let activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+    
+        // Při otevření záložky zvýšíme počítadlo
+        localStorage.setItem(sessionKey, ++activeTabs);
+    
+        // Při zavření záložky snížíme počítadlo a smažeme účet, pokud je to poslední záložka
         window.addEventListener('beforeunload', () => {
-            if (isGuest) {
-                localStorage.setItem('guestLogout', 'true'); // Záznam o zavření okna
+            activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+    
+            if (activeTabs > 0) {
+                localStorage.setItem(sessionKey, --activeTabs);
             }
-        });
-
-        // Detekce událostí změn v localStorage
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'guestLogout' && isGuest) {
+    
+            if (isGuest && activeTabs === 0) {
+                localStorage.clear();
                 deleteGuestAccount();
-                localStorage.clear(); // Odstraní všechna data pro aktuálního uživatele
-                window.location.href = '/login';
             }
         });
-
+    
+        // Smazání guest účtu
         function deleteGuestAccount() {
             fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
                 .then(response => {
                     if (response.ok) {
                         console.log('Guest account deleted.');
+                    } else {
+                        console.error('Failed to delete guest account.');
                     }
                 })
                 .catch(err => console.error('Error deleting guest account:', err));
         }
-
+    
+        // Odhlášení uživatele
+        document.getElementById('logout').addEventListener('click', () => {
+            handleLogout();
+        });
+    
         function handleLogout() {
             if (isGuest) {
-                // Smaž guest účet
                 deleteGuestAccount();
             }
-
-            // Vymaž data z localStorage a přesměruj na login
+    
+            // Vymazání všech uživatelských dat a přesměrování na login
             localStorage.clear();
             window.location.href = '/login';
         }
+    
+        // Čištění po delší nečinnosti
+        window.addEventListener('storage', (event) => {
+            if (event.key === sessionKey && parseInt(event.newValue) === 0 && isGuest) {
+                // Pokud je detekována neaktivita a poslední záložka, smaže se účet
+                deleteGuestAccount();
+                localStorage.clear();
+                window.location.href = '/login';
+            }
+        });
     </script>
+    
+    
 </body>
 </html>
