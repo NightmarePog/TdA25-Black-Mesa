@@ -130,7 +130,7 @@ def determine_game_state(board):
     x_count = sum(cell == "X" for row in board for cell in row)
     o_count = sum(cell == "O" for row in board for cell in row)
     if x_count + o_count <= 5:
-        return "Zahájení"
+        return "opening"
 
     return "Middle game"
 
