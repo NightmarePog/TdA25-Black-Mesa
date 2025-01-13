@@ -124,7 +124,7 @@ def check_for_five_and_oblique(board):
 def determine_game_state(board):
     # Check if player has the chance to win with 5 in a row or valid oblique 4-in-a-row
     if check_for_five_and_oblique(board):
-        return "Koncovka"
+        return "endgame"
 
     # Placeholder logic for other game states
     x_count = sum(cell == "X" for row in board for cell in row)
