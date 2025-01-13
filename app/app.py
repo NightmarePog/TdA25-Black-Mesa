@@ -132,7 +132,7 @@ def determine_game_state(board):
     if x_count + o_count <= 5:
         return "opening"
 
-    return "Middle game"
+    return "midgame"
 
 
 
