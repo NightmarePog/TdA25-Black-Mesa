@@ -139,6 +139,10 @@ def determine_game_state(board):
 
 
 # Routes for API
+
+@app.route('/api')
+def faze1():
+    return {"organization": "Student Cyber Games"}
 @app.route('/api/v1/games', methods=['POST'])
 def create_game():
     data = request.get_json()
@@ -220,8 +224,11 @@ def delete_game(uuid):
     return '', 204
 
 # Frontend Routes
-@app.route('/game', methods=['GET'])
+@app.route('/')
 def main_page():
+    return "Hello TdA"
+@app.route('/game', methods=['GET'])
+def main_games_page():
     return render_template('main.html')
 
 @app.route('/game/<uuid>', methods=['GET'])
