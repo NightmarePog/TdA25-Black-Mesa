@@ -253,7 +253,7 @@ def can_win_with_one_move(board, row, col, direction):
     if empty_count == 1 and player_count == 4:
         for i in values:
             if i != "":
-                return [True, "X"]  # Return player
+                return [True, i]  # Return player
 
     return [False, None]
 
@@ -264,8 +264,8 @@ def check_for_five_and_oblique(board):
         for c in range(len(board[0])):
             if board[r][c] != "":
                 for direction in directions:
-                    if not is_blocked_or_oblique_four(board, r, c, direction):
-                        return [True, "None"]  # Immediate win chance
+                    #if not is_blocked_or_oblique_four(board, r, c, direction):
+                    #    return [True, "None"]  # Immediate win chance
                     func = can_win_with_one_move(board, r, c, direction)
                     print(func)
                     if func[0] == True:  # Check the first element of the returned list
@@ -281,7 +281,9 @@ def determine_game_state(board):
     result = check_for_five_and_oblique(board)
     print(result)
     if result and result[0]:  # Make sure the result is not None and check the first element
+        print(x_count, o_count)
         if x_count == o_count and result[1] == "O":
+            print("11111111")
             return "midgame"
         elif x_count == o_count + 1 and result[1] == "X":
             return "midgame"
