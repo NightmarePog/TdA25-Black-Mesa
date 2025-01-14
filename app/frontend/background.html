@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to top right, #E31837 30%, #724479 50%, #0070BB 70%);
+        }
+
+        .shape { 
+            position: absolute; 
+            transition: left 0.1s linear, top 0.1s linear; 
+            user-select: none;  
+            filter: blur(2px); 
+            z-index: -2; /* Ensure it's always in the background */
+        }
+    </style>
+    
+</head>
+<body>
+    <script>
+        const imageSources = [
+            "picture/O_bile.svg", "picture/O_cerne.svg",
+            "picture/X_bile.svg", "picture/X_cerne.svg"
+        ];
+
+        for (let i = 0; i < 32; i++) {
+            const img = document.createElement("img");
+            img.className = "shape";
+            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
+            document.body.appendChild(img);
+        }
+
+        const shapes = document.querySelectorAll('.shape');
+
+        shapes.forEach(shape => {
+            // Assign random size between 25 and 150 pixels
+            const size = Math.random() * 125 + 25;
+            shape.style.width = `${size}px`;
+            shape.style.height = `${size}px`;
+
+            // Assign random initial position across the entire area
+            const leftPosition = Math.random() * (window.innerWidth - size);
+            const topPosition = Math.random() * (window.innerHeight - size);
+            shape.style.left = `${leftPosition}px`;
+            shape.style.top = `${topPosition}px`;
+
+
+            let dx = (Math.random() - 1.0) * 10;  // Slightly reduced speed
+            let dy = (Math.random() - 1.0) * 10;  // Slightly reduced speed
+
+            function moveShape() {
+                let rect = shape.getBoundingClientRect();
+
+                if (rect.left <= 0 || rect.right >= window.innerWidth) {
+                    dx = -dx;
+                }
+                if (rect.top <= 0 || rect.bottom >= window.innerHeight) {
+                    dy = -dy;
+                }
+
+                shape.style.left = (shape.offsetLeft + dx) + 'px';
+                shape.style.top = (shape.offsetTop + dy) + 'px';
+
+                requestAnimationFrame(moveShape);
+            }
+
+            moveShape();
+        });
+    </script>
+</body>
+</html>
