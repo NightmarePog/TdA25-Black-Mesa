@@ -271,15 +271,15 @@ def check_for_five_and_oblique(board):
 def determine_game_state(board):
     # Check if player has the chance to win with 5 in a row or valid oblique 4-in-a-row
     if check_for_five_and_oblique(board):
-        return "Koncovka"
+        return "endgame"
 
     # Placeholder logic for other game states
     x_count = sum(cell == "X" for row in board for cell in row)
     o_count = sum(cell == "O" for row in board for cell in row)
     if x_count + o_count <= 5:
-        return "Zahájení"
+        return "opening"
 
-    return "Middle game"
+    return "midgame"
 
 # Routes for API
 @app.route('/api/v1/games', methods=['POST'])
@@ -366,13 +366,14 @@ def delete_game(uuid):
 def game_to_dict(game):
     return {
         "uuid": game.uuid,
-        "createdAt": game.created_at.isoformat(),
-        "updatedAt": game.updated_at.isoformat(),
         "name": game.name,
         "difficulty": game.difficulty,
-        "gameState": game.game_state,
-        "board": game.board
+        "game_state": game.game_state,
+        "board": game.board,
+        "created_at": game.created_at.isoformat(),
+        "updated_at": game.updated_at.isoformat()
     }
+
 
 
 #-------------------FRONTEND ROUTES-------------------
