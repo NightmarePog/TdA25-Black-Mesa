@@ -243,17 +243,19 @@ def can_win_with_one_move(board, row, col, direction):
             positions.append((nr, nc))
 
     if len(positions) < 5:
-        return False
+        return [False, None]
 
     # Check for a pattern like "XX XX" or similar
     values = [board[r][c] for r, c in positions]
     empty_count = sum(1 for value in values if value == "")
     player_count = sum(1 for value in values if value == player)
-
+    
     if empty_count == 1 and player_count == 4:
-        return True
+        for i in values:
+            if i != "":
+                return [True, "X"]  # Return player
 
-    return False
+    return [False, None]
 
 def check_for_five_and_oblique(board):
     """Check if there is a chance to win with 5 in a row or a valid oblique 4-in-a-row."""
@@ -263,23 +265,35 @@ def check_for_five_and_oblique(board):
             if board[r][c] != "":
                 for direction in directions:
                     if not is_blocked_or_oblique_four(board, r, c, direction):
-                        return True
-                    if can_win_with_one_move(board, r, c, direction):
-                        return True
-    return False
+                        return [True, "None"]  # Immediate win chance
+                    func = can_win_with_one_move(board, r, c, direction)
+                    print(func)
+                    if func[0] == True:  # Check the first element of the returned list
+                        return func
+    return [False, None]  # Ensure consistent return type
 
 def determine_game_state(board):
-    # Check if player has the chance to win with 5 in a row or valid oblique 4-in-a-row
-    if check_for_five_and_oblique(board):
-        return "endgame"
-
     # Placeholder logic for other game states
     x_count = sum(cell == "X" for row in board for cell in row)
     o_count = sum(cell == "O" for row in board for cell in row)
+
+    # Check if player has the chance to win with 5 in a row or valid oblique 4-in-a-row
+    result = check_for_five_and_oblique(board)
+    print(result)
+    if result and result[0]:  # Make sure the result is not None and check the first element
+        if x_count == o_count and result[1] == "O":
+            return "midgame"
+        elif x_count == o_count + 1 and result[1] == "X":
+            return "midgame"
+            
+        return "endgame"
+
     if x_count + o_count <= 5:
         return "opening"
 
     return "midgame"
+
+
 
 # Routes for API
 @app.route('/api/v1/games', methods=['POST'])
