@@ -1,22 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Game List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px;
+            background-color: #f4f4f9;
+        }
+        .nickname-box {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+        .nickname-box:hover {
+            background-color: #444;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background: white;
+            color: black;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        .nickname-box:hover .menu {
+            display: block;
+        }
+        .menu button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .menu button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
 </head>
 <body>
-    <h1>Seznam her</h1>
-    <ul id="game-list"></ul>
+    <div class="header">
+        <div class="nickname-box">
+            <span id="nickname">Loading...</span>
+            <div class="menu">
+                <button id="logout">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <h1>Welcome to the game!</h1>
+
     <script>
-        fetch('/api/v1/games')
-            .then(response => response.json())
-            .then(data => {
-                const gameList = document.getElementById('game-list');
-                data.forEach(game => {
-                    const li = document.createElement('li');
-                    li.textContent = `${game.name} - ${game.difficulty}`;
-                    gameList.appendChild(li);
-                });
-            });
+        // Ověření, zda je uživatel přihlášený
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        const isGuest = localStorage.getItem('isGuest') === 'true';
+    
+        if (!userId) {
+            // Přesměrování, pokud uživatel není přihlášen
+            window.location.href = '/login';
+        } else {
+            // Zobrazení jména uživatele
+            document.getElementById('nickname').textContent = username || 'Unknown Player';
+        }
+    
+        // Klíč pro správu počítadla aktivních záložek
+        const sessionKey = `activeTabs_${userId}`;
+        let activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+    
+        // Při otevření záložky zvýšíme počítadlo
+        localStorage.setItem(sessionKey, ++activeTabs);
+    
+        // Při zavření záložky snížíme počítadlo a smažeme účet, pokud je to poslední záložka
+        window.addEventListener('beforeunload', () => {
+            activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+    
+            if (activeTabs > 0) {
+                localStorage.setItem(sessionKey, --activeTabs);
+            }
+    
+            if (isGuest && activeTabs === 0) {
+                localStorage.clear();
+                deleteGuestAccount();
+            }
+        });
+    
+        // Smazání guest účtu
+        function deleteGuestAccount() {
+            fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Guest account deleted.');
+                    } else {
+                        console.error('Failed to delete guest account.');
+                    }
+                })
+                .catch(err => console.error('Error deleting guest account:', err));
+        }
+    
+        // Odhlášení uživatele
+        document.getElementById('logout').addEventListener('click', () => {
+            handleLogout();
+        });
+    
+        function handleLogout() {
+            if (isGuest) {
+                deleteGuestAccount();
+            }
+    
+            // Vymazání všech uživatelských dat a přesměrování na login
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+    
+        // Čištění po delší nečinnosti
+        window.addEventListener('storage', (event) => {
+            if (event.key === sessionKey && parseInt(event.newValue) === 0 && isGuest) {
+                // Pokud je detekována neaktivita a poslední záložka, smaže se účet
+                deleteGuestAccount();
+                localStorage.clear();
+                window.location.href = '/login';
+            }
+        });
     </script>
+    
+    
 </body>
 </html>
