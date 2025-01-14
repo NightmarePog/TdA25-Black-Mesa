@@ -366,14 +366,13 @@ def delete_game(uuid):
 def game_to_dict(game):
     return {
         "uuid": game.uuid,
+        "createdAt": game.created_at.isoformat(),
+        "updatedAt": game.updated_at.isoformat(),
         "name": game.name,
         "difficulty": game.difficulty,
-        "game_state": game.game_state,
-        "board": game.board,
-        "created_at": game.created_at.isoformat(),
-        "updated_at": game.updated_at.isoformat()
+        "gameState": game.game_state,
+        "board": game.board
     }
-
 
 
 #-------------------FRONTEND ROUTES-------------------
