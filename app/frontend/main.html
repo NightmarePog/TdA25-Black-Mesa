@@ -4,25 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Dosis', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
+            background-color: #F6F6F6;
+            color: #1A1A1A;
         }
         .header {
             display: flex;
             justify-content: flex-end;
             align-items: center;
             padding: 15px;
-            background-color: #f4f4f9;
+            background-color: #F6F6F6;
         }
         .nickname-box {
             display: flex;
             align-items: center;
-            background-color: #333;
-            color: white;
+            background-color: #1A1A1A;
+            color: #FFFFFF;
             padding: 10px 15px;
             border-radius: 20px;
             font-size: 14px;
@@ -30,16 +32,16 @@
             position: relative;
         }
         .nickname-box:hover {
-            background-color: #444;
+            background-color: #080808;
         }
         .menu {
             display: none;
             position: absolute;
             top: 40px;
             right: 0;
-            background: white;
-            color: black;
-            border: 1px solid #ccc;
+            background: #FFFFFF;
+            color: #1A1A1A;
+            border: 1px solid #CCC;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -49,8 +51,8 @@
             display: block;
         }
         .menu button {
-            background-color: #f44336;
-            color: white;
+            background-color: #E31837;
+            color: #FFFFFF;
             border: none;
             padding: 8px 12px;
             font-size: 14px;
@@ -58,7 +60,64 @@
             border-radius: 5px;
         }
         .menu button:hover {
-            background-color: #d32f2f;
+            background-color: #AB2E58;
+        }
+        .game-creation {
+            padding: 20px;
+            max-width: 500px;
+            background: #FFFFFF;
+            border: 1px solid #CCC;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .game-creation table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .game-creation table td {
+            padding: 10px;
+        }
+        .game-creation label {
+            font-weight: 600;
+        }
+        .game-creation input, .game-creation select {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #CCC;
+            border-radius: 5px;
+        }
+        .game-creation button {
+            background-color: #395A9A;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .game-container .game-creation:last-child button {
+            margin-top: 68px; /* Posunutí tlačítka "Join Game" níže */
+        }
+
+        .game-creation button:hover {
+            background-color: #724479;
+        }
+
+        /* Flex container to display the tables side by side with reduced gap */
+        .game-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+
+        .game-creation {
+            flex: 1;
+            max-width: 500px;
         }
     </style>
 </head>
@@ -72,7 +131,43 @@
         </div>
     </div>
 
-    <h1>Welcome to the game!</h1>
+    <h1 style="text-align: center;">Welcome to the game!</h1>
+
+    <div class="game-container">
+        <div class="game-creation">
+            <h2>Create a Game</h2>
+            <table>
+                <tr>
+                    <td><label for="gameName">Game Name:</label></td>
+                    <td><input type="text" id="gameName" placeholder="Enter game name"></td>
+                </tr>
+                <tr>
+                    <td><label for="gameDifficulty">Difficulty:</label></td>
+                    <td>
+                        <select id="gameDifficulty">
+                            <option value="začátečník">Začátečník</option>
+                            <option value="jednoduchá">Jednoduchá</option>
+                            <option value="pokročilá">Pokročilá</option>
+                            <option value="těžká">Těžká</option>
+                            <option value="nejtěžší">Nejtěžší</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button id="createGame">Create Game</button>
+        </div>
+
+        <div class="game-creation">
+            <h2>Join a Game</h2>
+            <table>
+                <tr>
+                    <td><label for="gameCode">Game Code:</label></td>
+                    <td><input type="text" id="gameCode" placeholder="Enter game code"></td>
+                </tr>
+            </table>
+            <button id="joinGame">Join Game</button>
+        </div>
+    </div>
 
     <script>
         const userId = localStorage.getItem('userId');
@@ -80,31 +175,19 @@
         const isGuest = localStorage.getItem('isGuest') === 'true';
 
         if (!userId) {
-            // Přesměrování, pokud uživatel není přihlášen
+            // Redirect if user is not logged in
             window.location.href = '/login';
         } else {
             document.getElementById('nickname').textContent = username || 'Unknown Player';
         }
 
-        const sessionKey = `activeTabs_${userId}`;
-        let activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+        if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
+            handleLogout();
+        }
 
-        // Při otevření záložky zvýšíme počítadlo
-        localStorage.setItem(sessionKey, ++activeTabs);
-        // Zajistíme, že v sessionStorage nebudeme mazat účet při přechodu na stránku hry
-        //window.addEventListener('beforeunload', () => {
-        //    activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
-//
-    //        if (activeTabs > 0) {
-    //            localStorage.setItem(sessionKey, --activeTabs);
-     //       }
-//
-  //          // Pokud uživatel není na stránce hry a je guest, smažeme účet
-   //         if (isGuest && activeTabs === 0 && !window.location.pathname.startsWith('/game/')) {
-   //             localStorage.clear();
-    //            deleteGuestAccount();
-     //       }
-     //   });
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
 
         function deleteGuestAccount() {
             fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
@@ -118,7 +201,6 @@
                 .catch(err => console.error('Error deleting guest account:', err));
         }
 
-        // Odhlášení uživatele
         document.getElementById('logout').addEventListener('click', () => {
             handleLogout();
         });
@@ -128,9 +210,76 @@
                 deleteGuestAccount();
             }
             localStorage.clear();
-            sessionStorage.clear(); // Vyčistíme sessionStorage
+            sessionStorage.clear();
             window.location.href = '/login';
         }
+
+        document.getElementById('createGame').addEventListener('click', () => {
+            const gameName = document.getElementById('gameName').value.trim();
+            const gameDifficulty = document.getElementById('gameDifficulty').value;
+
+            if (!gameName) {
+                alert('Please enter a game name.');
+                return;
+            }
+
+            const gameData = {
+                name: gameName,
+                difficulty: gameDifficulty,
+                board: Array(15).fill(null).map(() => Array(15).fill(""))
+            };
+
+            fetch('/api/v1/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to create game');
+                    }
+                })
+                .then(data => {
+                    console.log('Game created successfully:', data);
+                    window.location.href = `/game/${data.uuid}`; // Redirect to created game
+                })
+                .catch(error => {
+                    console.error('Error creating game:', error);
+                    alert('Failed to create game.');
+                });
+        });
+
+        document.getElementById('joinGame').addEventListener('click', () => {
+            const gameCode = document.getElementById('gameCode').value.trim();
+
+            if (!gameCode) {
+                alert('Please enter a game code.');
+                return;
+            }
+
+            fetch(`/api/v1/get_game_data_by_code/${gameCode}`, {
+                method: 'GET'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Game not found');
+                    }
+                })
+                .then(data => {
+                    console.log('Joined game successfully:', data);
+                    window.location.href = `/game/${data.uuid}`; // Redirect to the joined game
+                })
+                .catch(error => {
+                    console.error('Error joining game:', error);
+                    alert('Failed to join game.');
+                });
+        });
     </script>
 </body>
 </html>

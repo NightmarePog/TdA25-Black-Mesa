@@ -22,6 +22,7 @@
             flex-direction: column;
             color: #333;
             text-align: center;
+            position: relative;
         }
 
         h1 {
@@ -99,6 +100,28 @@
             background-color: #BDBDBD;
             cursor: not-allowed;
         }
+
+        /* Game code display */
+        #gameCodeContainer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #gameCode {
+            font-size: 1.2rem;
+            color: #2196F3;
+        }
     </style>
 </head>
 <body>
@@ -106,6 +129,12 @@
     <p id="gameStatus">Waiting for players...</p>
     <div id="board" class="board"></div>
     <button id="restartButton" class="restart-btn" style="display: none;">Restart Game</button>
+
+    <!-- Game code display -->
+    <div id="gameCodeContainer">
+        <span>Game Code: </span>
+        <span id="gameCode">Loading...</span>
+    </div>
 
     <script>
         const gameUuid = window.location.pathname.split('/').pop();
@@ -126,6 +155,17 @@
         console.log(baseUrl);
         let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Default 15x15 board
         let gameStarted = false;
+
+        // Fetch game code from API
+        fetch(`/api/v1/games/${gameUuid}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('gameCode').innerText = data.code;
+            })
+            .catch(error => {
+                console.error('Error fetching game code:', error);
+                document.getElementById('gameCode').innerText = 'Error';
+            });
 
         // Connect to the game
         socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
@@ -177,6 +217,10 @@
             drawBoard();
         });
 
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+
         // Function to draw the game board
         function drawBoard() {
             const boardElement = document.getElementById('board');
@@ -190,7 +234,7 @@
                         cellElement.classList.add(cell.toLowerCase()); // X or O
                         cellElement.innerText = cell; // Add symbol X or O
                     }
-
+                    
                     // Disable clicks if game is over or if it's not the player's turn
                     if (gameStarted && !cell && currentTurn === playerRole && winner === "") {
                         cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
@@ -237,5 +281,4 @@
         });
     </script>
 </body>
-
 </html>

@@ -23,8 +23,23 @@ class Game(db.Model):
     difficulty = db.Column(db.String(20), nullable=False)
     game_state = db.Column(db.String(20), nullable=False, default='unknown')
     board = db.Column(db.JSON, nullable=False)
-    players = db.Column(db.JSON, default=[])  # Seznam hráčů (ID, username, role)
+    players = db.Column(db.JSON, default=[])  # List of players (ID, username, role)
     started = db.Column(db.Boolean, default=False)
+    code = db.Column(db.String(6), nullable=True, unique=True)  # 6-character code for game
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Generate a unique 6-character code when creating the game
+        self.code = self.generate_unique_code()
+
+    def generate_unique_code(self):
+        """Generate a unique 6-character alphanumeric code."""
+        while True:
+            code = str(uuid4().hex)[:6].lower()
+            # Ensure the code is unique
+            existing_game = Game.query.filter_by(code=code).first()
+            if not existing_game:
+                return code
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # ID jako auto-increment
@@ -250,21 +265,30 @@ def register_user():
         if data.get('loginBy') == "0" or data.get('loginBy') == 0:
             if not data.get('username'):
                 abort(400, description="Username is required")
-            
+
+            # Přidání aktuálního času v sekundách k uživatelskému jménu
+            timestamp = int(datetime.now().timestamp())
+            data['username'] = f"{data['username']}_{timestamp}"
+
             if User.query.filter_by(username=data['username']).first():
                 abort(400, description="Username already exists")
 
-                # Vytvoření nového hráče
+            # Vytvoření nového hráče
             player = User(
                 username=data['username'],
                 login_by=data['loginBy'],
-                email= str(uuid4()),
+                email=str(uuid4()),
                 password_hash="guest"
             )
 
             db.session.add(player)
             db.session.commit()
-            return jsonify({"message": "User registered successfully", "id": player.id, "username": player.username}), 201
+
+            return jsonify({
+                "message": "User registered successfully",
+                "id": player.id,
+                "username": player.username
+            }), 201
         else:
             # Validace vstupních dat
             if not data.get('username') or not data.get('email'):
@@ -523,6 +547,13 @@ def get_all_games():
     games = query.all()
     return jsonify([game_to_dict(game) for game in games]), 200
 
+@app.route('/api/v1/get_game_data_by_code/<code>', methods=['GET'])
+def get_game_data_by_code(code):
+    game = Game.query.filter_by(code=code).first()
+    if not game:
+        abort(404)
+    return jsonify(game_to_dict(game)), 200
+
 @app.route('/api/v1/games/<uuid>', methods=['GET'])
 def get_game(uuid):
     game = Game.query.get(uuid)
@@ -569,7 +600,8 @@ def game_to_dict(game):
         "name": game.name,
         "difficulty": game.difficulty,
         "gameState": game.game_state,
-        "board": game.board
+        "board": game.board,
+        "code": game.code,
     }
 
 
