@@ -123,9 +123,13 @@ def save_game(game, player_id):
 
 
 
-def call_update_game_api(game_uuid, board, name, difficulty):
-    base_url = request.host_url  # Dynamicky získá základní URL serveru
+def call_update_game_api(game_uuid, board, name, difficulty, domain):
+    base_url = "https://a9334987.app.deploy.tourde.app/"
+    if domain != "https://a9334987.app.deploy.tourde.app/" and domain != "":
+        base_url = domain
+
     url = f'{base_url}api/v1/games/{game_uuid}'
+    
     data = {
         'name': name,
         'difficulty': difficulty,
@@ -163,7 +167,7 @@ def handle_make_move(data):
         print(f"Player {player['username']} ({player_id}) made a move at {row}, {col}")
 
         # Call the API to update the game state.
-        response = call_update_game_api(game_uuid, board, game.name, game.difficulty)
+        response = call_update_game_api(game_uuid, board, game.name, game.difficulty, data['domain'])
         if response.status_code != 200:
             print(response.json())
             emit('error', {'message': 'Failed to save the game state via API.'})

@@ -116,8 +116,14 @@
         let winner = "";
         let playerIndex = 0;
         let playerList = [];
+        const fullUrl = window.location.href;
+        let baseUrl = new URL(fullUrl).origin;
         const socket = io();
 
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
+        }
+        console.log(baseUrl);
         let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Default 15x15 board
         let gameStarted = false;
 
@@ -213,7 +219,8 @@
                 alert("The game is over. No more moves can be made.");
                 return;
             }
-            socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col] });
+
+            socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col], domain: baseUrl });
         }
 
         // Error listener
