@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort, render_template, redirect, session, request, json
+from flask import Flask, request, jsonify, abort, render_template, redirect, session, request, json, url_for
 from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
 from datetime import datetime
@@ -113,7 +113,8 @@ def handle_join_game(data):
 
 
 def call_update_game_api(game_uuid, board, name, difficulty):
-    url = f'http://127.0.0.1:5000/api/v1/games/{game_uuid}'
+    base_url = request.host_url  # Dynamicky získá základní URL serveru
+    url = f'{base_url}api/v1/games/{game_uuid}'
     data = {
         'name': name,
         'difficulty': difficulty,
