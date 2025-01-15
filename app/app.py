@@ -32,6 +32,7 @@ class User(db.Model):
     username = db.Column(db.String(50), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=True)  # Heslo může být prázdné pro jiný typ přihlášení
+    saved_games = db.Column(db.JSON, default={})  # Seznam uložených her
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -68,7 +69,6 @@ def handle_join_game(data):
             print(f"User {username} ({user_id}) has joined the game {game_uuid}")
             role = 'X' if len(players_list) == 0 else 'O'
             players_list.append({'user_id': user_id, 'username': username, 'role': role})
-            editedNowStarted = False
 
             if len(players_list) == 2:
                 game.started = True
@@ -109,6 +109,17 @@ def handle_join_game(data):
         db.session.rollback()
         emit('error', {'message': f"Error joining game: {str(e)}"})
         print(f"Error joining game: {str(e)}")
+
+def save_game(game, player_id):
+    user = db.session.get(User, player_id)
+    if not user:
+        return
+
+    saved_games = user.saved_games if isinstance(user.saved_games, dict) else {}
+    saved_games[game.uuid] = game_to_dict(game)
+    user.saved_games = json.dumps(saved_games)
+    db.session.commit()
+    print(user.saved_games)  # This will print the saved games dictionary.
 
 
 
@@ -160,10 +171,22 @@ def handle_make_move(data):
 
         print(f"Board updated successfully for game {game_uuid} via API.")
 
-        # Inform players about the game update.
+        # Check if there's a winner
+        if check_winner(board, player['role']):
+            print(f"Player {player['username']} ({player_id}) wins!")
+            # Set the game state to 'finished' when a player wins
+            game.game_state = 'endgame'
+            db.session.commit()
+            # Inform players that the game is over
+            #emit('game_over', {'winner': player['username'], 'game_state': game.game_state}, room=game_uuid)
+            save_game(game, player_id)
+            emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": player_id}, room=game_uuid)
+
+        # Inform players about the game update
         emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn}, room=game_uuid)
     else:
         emit('error', {'message': 'This spot is already taken.'})
+
 
 
 

@@ -6,30 +6,106 @@
     <title>Game</title>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+
+        #gameStatus {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #FF5722;
+        }
+
         .board {
             display: grid;
-            grid-template-columns: repeat(15, 30px);
-            grid-template-rows: repeat(15, 30px);
-            gap: 2px;
+            grid-template-columns: repeat(15, 35px);
+            grid-template-rows: repeat(15, 35px);
+            gap: 3px;
+            margin-top: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .cell {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border: 1px solid #ddd;
+            background-color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 1.5rem;
             cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
-        .cell.x { color: red; }
-        .cell.o { color: blue; }
+
+        .cell:hover {
+            transform: scale(1.05);
+        }
+
+        .cell.x {
+            color: #FF5722;
+            font-weight: bold;
+        }
+
+        .cell.o {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .cell:active {
+            background-color: #e0e0e0;
+        }
+
+        .restart-btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .restart-btn:hover {
+            background-color: #388E3C;
+        }
+
+        .restart-btn:disabled {
+            background-color: #BDBDBD;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <h1>Game</h1>
     <p id="gameStatus">Waiting for players...</p>
     <div id="board" class="board"></div>
+    <button id="restartButton" class="restart-btn" style="display: none;">Restart Game</button>
 
     <script>
         const gameUuid = window.location.pathname.split('/').pop();
@@ -37,97 +113,122 @@
         const userId = localStorage.getItem('userId');
         let playerRole = "";
         let currentTurn = "X";
+        let winner = "";
+        let playerIndex = 0;
+        let playerList = [];
         const socket = io();
-    
-        let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Výchozí 15x15 pole
+
+        let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Default 15x15 board
         let gameStarted = false;
-    
-        // Připojení ke hře
+
+        // Connect to the game
         socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
-    
-        // Posluchač události pro aktualizaci hry
+
+        // Event listener for game updates
         socket.on('game_update', (data) => {
             const gameStatus = document.getElementById('gameStatus');
             gameStarted = data.started;
             if (data.turn) {
                 currentTurn = data.turn;
             }
-            
-            if (gameStarted) {
-                gameStatus.innerText = `Game has started! It's ${data.turn}'s turn.`;
-            } else {
-                gameStatus.innerText = 'Waiting for another player...';
+
+            if (data.winner) {
+                winner = data.winner;
             }
-    
-            // Aktualizace desky
+
+            // Check if the game has started
+            if (gameStarted && winner === "") {
+                gameStatus.innerText = `Game has started! It's ${data.turn}'s turn.`;
+            } else if (winner === "") {
+                gameStatus.innerText = 'Waiting for another player...';
+            } else {
+                gameStatus.innerText = `Game over! ${playerList[playerIndex].username} won!`;
+                console.log(`Game over! ${playerList[playerIndex].username} won!`);
+            }
+
+            // Update the board and check for winner
             if (data.board) {
                 board = data.board;
             }
+
             drawBoard();
         });
-    
-        // Posluchač stavu hry
+
+        // Event listener for game status updates
         socket.on('game_status', (data) => {
             const gameStatus = document.getElementById('gameStatus');
             gameStatus.innerText = data.message;
+            console.log(data.message);
+            playerList = data.players;
             for (const value in data.players) {
                 if (data.players[value].user_id == userId) {
                     playerRole = data.players[value].role;
+                    playerIndex = value;
                 }
             }
 
             console.log(playerRole);
             drawBoard();
         });
-    
-        // Funkce pro vykreslení herní tabulky
+
+        // Function to draw the game board
         function drawBoard() {
             const boardElement = document.getElementById('board');
-            boardElement.innerHTML = ''; // Vymazat starý obsah
-    
+            boardElement.innerHTML = ''; // Clear the previous content
+
             board.forEach((row, rowIndex) => {
                 row.forEach((cell, colIndex) => {
                     const cellElement = document.createElement('div');
                     cellElement.classList.add('cell');
                     if (cell) {
-                        cellElement.classList.add(cell.toLowerCase()); // X nebo O
-                        cellElement.innerText = cell; // Přidání symbolu X nebo O
+                        cellElement.classList.add(cell.toLowerCase()); // X or O
+                        cellElement.innerText = cell; // Add symbol X or O
                     }
-                    // console.log(currentTurn, playerRole);
-                    // console.log(currentTurn === playerRole);
-                    // Pokud hra nezačala nebo buňka již byla obsazena, není klikací
-                    console.log(playerRole);
-                    if (gameStarted && !cell && currentTurn === playerRole) {
+
+                    // Disable clicks if game is over or if it's not the player's turn
+                    if (gameStarted && !cell && currentTurn === playerRole && winner === "") {
                         cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
                     } else {
-                        cellElement.style.cursor = 'not-allowed'; // Změní kurzor myši na neaktivní
+                        cellElement.style.cursor = 'not-allowed'; // Change cursor to not-allowed
                     }
-    
+
                     boardElement.appendChild(cellElement);
                 });
             });
+
+            // Display restart button if game is over
+            const restartButton = document.getElementById('restartButton');
+            if (winner !== "") {
+                restartButton.style.display = 'inline-block';
+            }
         }
-    
-        // Funkce pro odeslání tahu
+
+        // Function to make a move
         function makeMove(row, col) {
             if (currentTurn !== playerRole) {
                 alert("It's not your turn!");
                 return;
             }
+            if (winner !== "") {
+                alert("The game is over. No more moves can be made.");
+                return;
+            }
             socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col] });
         }
-    
-        // Posluchač chybových zpráv
+
+        // Error listener
         socket.on('error', (data) => {
             alert(data.message);
         });
-    
-        // Vykreslit prázdnou tabulku při načtení stránky
-        drawBoard();
-    </script>
 
-    
-    
-    
+        // Draw the empty board on page load
+        drawBoard();
+
+        // Handle restart game
+        document.getElementById('restartButton').addEventListener('click', () => {
+            socket.emit('restart_game', { game_uuid: gameUuid });
+        });
+    </script>
 </body>
+
 </html>
