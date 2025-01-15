@@ -36,6 +36,17 @@
     </div>
 
     <script>
+
+        // Načíst obsah z background.html 
+        fetch('background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                // Vložit načtený obsah přímo do těla (body) 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
+
+
         document.getElementById('create-game').addEventListener('click', async () => {
             try {
                 const response = await fetch('/api/v1/games', {
