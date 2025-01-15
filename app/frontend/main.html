@@ -75,41 +75,37 @@
     <h1>Welcome to the game!</h1>
 
     <script>
-        // Ověření, zda je uživatel přihlášený
         const userId = localStorage.getItem('userId');
         const username = localStorage.getItem('username');
         const isGuest = localStorage.getItem('isGuest') === 'true';
-    
+
         if (!userId) {
             // Přesměrování, pokud uživatel není přihlášen
             window.location.href = '/login';
         } else {
-            // Zobrazení jména uživatele
             document.getElementById('nickname').textContent = username || 'Unknown Player';
         }
-    
-        // Klíč pro správu počítadla aktivních záložek
+
         const sessionKey = `activeTabs_${userId}`;
         let activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
-    
+
         // Při otevření záložky zvýšíme počítadlo
         localStorage.setItem(sessionKey, ++activeTabs);
-    
-        // Při zavření záložky snížíme počítadlo a smažeme účet, pokud je to poslední záložka
-        window.addEventListener('beforeunload', () => {
-            activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
-    
-            if (activeTabs > 0) {
-                localStorage.setItem(sessionKey, --activeTabs);
-            }
-    
-            if (isGuest && activeTabs === 0) {
-                localStorage.clear();
-                deleteGuestAccount();
-            }
-        });
-    
-        // Smazání guest účtu
+        // Zajistíme, že v sessionStorage nebudeme mazat účet při přechodu na stránku hry
+        //window.addEventListener('beforeunload', () => {
+        //    activeTabs = parseInt(localStorage.getItem(sessionKey)) || 0;
+//
+    //        if (activeTabs > 0) {
+    //            localStorage.setItem(sessionKey, --activeTabs);
+     //       }
+//
+  //          // Pokud uživatel není na stránce hry a je guest, smažeme účet
+   //         if (isGuest && activeTabs === 0 && !window.location.pathname.startsWith('/game/')) {
+   //             localStorage.clear();
+    //            deleteGuestAccount();
+     //       }
+     //   });
+
         function deleteGuestAccount() {
             fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
                 .then(response => {
@@ -121,33 +117,20 @@
                 })
                 .catch(err => console.error('Error deleting guest account:', err));
         }
-    
+
         // Odhlášení uživatele
         document.getElementById('logout').addEventListener('click', () => {
             handleLogout();
         });
-    
+
         function handleLogout() {
             if (isGuest) {
                 deleteGuestAccount();
             }
-    
-            // Vymazání všech uživatelských dat a přesměrování na login
             localStorage.clear();
+            sessionStorage.clear(); // Vyčistíme sessionStorage
             window.location.href = '/login';
         }
-    
-        // Čištění po delší nečinnosti
-        window.addEventListener('storage', (event) => {
-            if (event.key === sessionKey && parseInt(event.newValue) === 0 && isGuest) {
-                // Pokud je detekována neaktivita a poslední záložka, smaže se účet
-                deleteGuestAccount();
-                localStorage.clear();
-                window.location.href = '/login';
-            }
-        });
     </script>
-    
-    
 </body>
 </html>

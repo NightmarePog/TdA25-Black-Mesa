@@ -3,17 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Details</title>
+    <title>Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
+    <style>
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 2px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .cell.x { color: red; }
+        .cell.o { color: blue; }
+    </style>
 </head>
 <body>
-    <h1>Detail hry</h1>
-    <pre id="game-info"></pre>
-    <script>
-        // Přímé vkládání proměnné jako JSON string
-        const gameData = JSON.parse('{{ game | tojson | safe }}');
+    <h1>Game</h1>
+    <p id="gameStatus">Waiting for players...</p>
+    <div id="board" class="board"></div>
 
-        // Zobrazení herních dat na stránce
-        document.getElementById('game-info').textContent = JSON.stringify(gameData, null, 2);
+    <script>
+        const gameUuid = window.location.pathname.split('/').pop();
+        const username = localStorage.getItem('username');
+        const userId = localStorage.getItem('userId');
+        let playerRole = "";
+        let currentTurn = "X";
+        const socket = io();
+    
+        let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Výchozí 15x15 pole
+        let gameStarted = false;
+    
+        // Připojení ke hře
+        socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
+    
+        // Posluchač události pro aktualizaci hry
+        socket.on('game_update', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            gameStarted = data.started;
+            if (data.turn) {
+                currentTurn = data.turn;
+            }
+            
+            if (gameStarted) {
+                gameStatus.innerText = `Game has started! It's ${data.turn}'s turn.`;
+            } else {
+                gameStatus.innerText = 'Waiting for another player...';
+            }
+    
+            // Aktualizace desky
+            if (data.board) {
+                board = data.board;
+            }
+            drawBoard();
+        });
+    
+        // Posluchač stavu hry
+        socket.on('game_status', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            gameStatus.innerText = data.message;
+            for (const value in data.players) {
+                if (data.players[value].user_id == userId) {
+                    playerRole = data.players[value].role;
+                }
+            }
+
+            console.log(playerRole);
+            drawBoard();
+        });
+    
+        // Funkce pro vykreslení herní tabulky
+        function drawBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = ''; // Vymazat starý obsah
+    
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    if (cell) {
+                        cellElement.classList.add(cell.toLowerCase()); // X nebo O
+                        cellElement.innerText = cell; // Přidání symbolu X nebo O
+                    }
+                    // console.log(currentTurn, playerRole);
+                    // console.log(currentTurn === playerRole);
+                    // Pokud hra nezačala nebo buňka již byla obsazena, není klikací
+                    console.log(playerRole);
+                    if (gameStarted && !cell && currentTurn === playerRole) {
+                        cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
+                    } else {
+                        cellElement.style.cursor = 'not-allowed'; // Změní kurzor myši na neaktivní
+                    }
+    
+                    boardElement.appendChild(cellElement);
+                });
+            });
+        }
+    
+        // Funkce pro odeslání tahu
+        function makeMove(row, col) {
+            if (currentTurn !== playerRole) {
+                alert("It's not your turn!");
+                return;
+            }
+            socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col] });
+        }
+    
+        // Posluchač chybových zpráv
+        socket.on('error', (data) => {
+            alert(data.message);
+        });
+    
+        // Vykreslit prázdnou tabulku při načtení stránky
+        drawBoard();
     </script>
+
+    
+    
+    
 </body>
 </html>

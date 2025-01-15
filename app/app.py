@@ -1,14 +1,18 @@
-from flask import Flask, request, jsonify, abort, render_template, redirect, session, request
+from flask import Flask, request, jsonify, abort, render_template, redirect, session, request, json
 from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
 from datetime import datetime
+from flask_socketio import SocketIO, join_room, emit
 import hashlib
+import json
+import requests
 
 app = Flask(__name__, template_folder="frontend")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///games.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+socketio = SocketIO(app)
 
 #-------------------MODELS-------------------
 class Game(db.Model):
@@ -19,6 +23,8 @@ class Game(db.Model):
     difficulty = db.Column(db.String(20), nullable=False)
     game_state = db.Column(db.String(20), nullable=False, default='unknown')
     board = db.Column(db.JSON, nullable=False)
+    players = db.Column(db.JSON, default=[])  # Seznam hráčů (ID, username, role)
+    started = db.Column(db.Boolean, default=False)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # ID jako auto-increment
@@ -37,7 +43,155 @@ class User(db.Model):
     def check_password(self, password):
         """Check if the provided password matches the stored SHA-256 hash."""
         return self.password_hash == hashlib.sha256(password.encode('utf-8')).hexdigest()
-    
+
+
+
+@socketio.on('join_game')
+def handle_join_game(data):
+    game_uuid = data['game_uuid']
+    user_id = data['user_id']
+    username = data['username']
+    print(f"User {username} ({user_id}) is trying to join game {game_uuid}")
+
+    # Získání hry z databáze
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if not game:
+        emit('error', {'message': 'Game not found.'})
+        return
+
+    # Convert the players JSON string back to a list
+    players_list = json.loads(game.players) if game.players else []
+
+    try:
+        # Připojení hráče k hře
+        if len(players_list) < 2:
+            print(f"User {username} ({user_id}) has joined the game {game_uuid}")
+            role = 'X' if len(players_list) == 0 else 'O'
+            players_list.append({'user_id': user_id, 'username': username, 'role': role})
+            editedNowStarted = False
+
+            if len(players_list) == 2:
+                game.started = True
+
+            # Aktualizace hráčů a uložení změn
+            game.players = json.dumps(players_list)
+            db.session.commit()
+
+            # Vyslat aktualizaci všem hráčům
+            emit('game_update', {
+                'players': players_list,
+                'started': game.started,
+                'board': game.board,  # Poslat aktuální desku
+                'role': role
+            }, room=game_uuid)
+
+        else:
+            # Připojení jako divák
+            players_list.append({'user_id': user_id, 'username': username, 'role': 'viewer'})
+            game.players = json.dumps(players_list)
+            db.session.commit()
+
+            emit('game_update', {
+                'players': players_list,
+                'started': game.started,
+                'board': game.board,
+                'role': 'viewer'
+            }, room=game_uuid)
+
+        # Připojení do místnosti
+        join_room(game_uuid)
+
+        # Pokud hra začala, poslat status
+        if game.started:
+            emit('game_status', {'message': 'Game has started!', "players": players_list}, room=game_uuid)
+
+    except Exception as e:
+        db.session.rollback()
+        emit('error', {'message': f"Error joining game: {str(e)}"})
+        print(f"Error joining game: {str(e)}")
+
+
+
+def call_update_game_api(game_uuid, board, name, difficulty):
+    url = f'http://127.0.0.1:5000/api/v1/games/{game_uuid}'
+    data = {
+        'name': name,
+        'difficulty': difficulty,
+        'board': board
+    }
+    response = requests.put(url, json=data)
+    return response
+
+@socketio.on('make_move')
+def handle_make_move(data):
+    game_uuid = data['game_uuid']
+    player_id = data['player_id']
+    move = data['move']
+
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if not game:
+        emit('error', {'message': 'Game not found.'})
+        return
+
+    # Ensure the board is a list of lists, initializing it if necessary.
+    board = game.board if isinstance(game.board, list) else [[""] * 15 for _ in range(15)]
+    players_list = json.loads(game.players) if game.players else []
+
+    # Find the player by ID.
+    player = next((p for p in players_list if p['user_id'] == player_id), None)
+    if not player or player['role'] == 'viewer':
+        emit('error', {'message': 'Invalid move.'})
+        return
+
+    row, col = move
+    if board[row][col] == "":
+        # Make the player's move.
+        board[row][col] = player['role']
+        turn = 'X' if player['role'] == 'O' else 'O'
+        print(f"Player {player['username']} ({player_id}) made a move at {row}, {col}")
+
+        # Call the API to update the game state.
+        response = call_update_game_api(game_uuid, board, game.name, game.difficulty)
+        if response.status_code != 200:
+            print(response.json())
+            emit('error', {'message': 'Failed to save the game state via API.'})
+            return
+
+        print(f"Board updated successfully for game {game_uuid} via API.")
+
+        # Inform players about the game update.
+        emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn}, room=game_uuid)
+    else:
+        emit('error', {'message': 'This spot is already taken.'})
+
+
+
+
+
+# Funkce pro kontrolu vítěze (5 v řadě)
+def check_winner(board, role):
+    # Pro zjednodušení se bude kontrolovat pouze horizontálně, vertikálně a diagonálně
+    for row in range(15):
+        for col in range(15):
+            if board[row][col] == role:
+                if check_direction(board, row, col, 1, 0, role) or \
+                   check_direction(board, row, col, 0, 1, role) or \
+                   check_direction(board, row, col, 1, 1, role) or \
+                   check_direction(board, row, col, 1, -1, role):
+                    return True
+    return False
+
+def check_direction(board, row, col, delta_row, delta_col, role):
+    count = 0
+    for i in range(5):
+        r, c = row + i * delta_row, col + i * delta_col
+        if 0 <= r < 15 and 0 <= c < 15 and board[r][c] == role:
+            count += 1
+        else:
+            break
+    return count == 5
+
+
 
 
 
