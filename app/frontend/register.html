@@ -61,6 +61,16 @@
 
     <script>
 
+                // Načíst obsah z background.html 
+                fetch('background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                // Vložit načtený obsah přímo do těla (body) 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
+            
+
                 // Load the content of index.html
                 fetch('background.html')
             .then(response => response.text())

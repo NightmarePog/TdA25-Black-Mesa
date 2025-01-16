@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piškvorky</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .button-container {
+            margin-top: 50px;
+        }
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Piškvorky</h1>
+    <div class="button-container">
+        <button id="game-list">Game List</button>
+        <button id="create-game">Create Game</button>
+    </div>
+
+    <script>
+
+        // Načíst obsah z background.html 
+        fetch('background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                // Vložit načtený obsah přímo do těla (body) 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
+
+
+        document.getElementById('create-game').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/v1/games', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}), // Přizpůsobte, pokud API vyžaduje data
+                });
+
+                if (response.ok) {
+                    const game = await response.json();
+                    alert(`Game created successfully! ID: ${game.uuid}`);
+                } else {
+                    alert('Failed to create game.');
+                }
+            } catch (error) {
+                console.error('Error creating game:', error);
+                alert('An error occurred while creating the game.');
+            }
+        });
+    </script>
+</body>
+</html>

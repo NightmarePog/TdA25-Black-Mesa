@@ -9,70 +9,34 @@
             margin: 0;
             padding: 0;
             height: 100vh;
+            width: 100%;
             overflow: hidden;
-            background: linear-gradient(to top right, #E31837 30%, #724479 50%, #0070BB 70%);
+            position: absolute;
         }
 
-        .shape { 
-            position: absolute; 
-            transition: left 0.1s linear, top 0.1s linear; 
-            user-select: none;  
-            filter: blur(2px); 
-            z-index: -2; /* Ensure it's always in the background */
+        .top-bar {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            background: linear-gradient(to right, #395A9A 50%, #0070BB 50%);
+            position: absolute;
+            top: 0px;
+            left: 0;
+            z-index: 0;
+            align-items: center; /* Vertically center the logo */
+            padding-left: 20px; /* Space from the left edge */
+            z-index: -1;
+        }
+
+        .logo { 
+            width: 100px; /* Adjust width to make the logo bigger */ 
+            height: auto; /* Maintain aspect ratio */ 
         }
     </style>
-    
 </head>
 <body>
-    <script>
-        const imageSources = [
-            "picture/O_bile.svg", "picture/O_cerne.svg",
-            "picture/X_bile.svg", "picture/X_cerne.svg"
-        ];
-
-        for (let i = 0; i < 32; i++) {
-            const img = document.createElement("img");
-            img.className = "shape";
-            img.src = imageSources[Math.floor(Math.random() * imageSources.length)];
-            document.body.appendChild(img);
-        }
-
-        const shapes = document.querySelectorAll('.shape');
-
-        shapes.forEach(shape => {
-            // Assign random size between 25 and 150 pixels
-            const size = Math.random() * 125 + 25;
-            shape.style.width = `${size}px`;
-            shape.style.height = `${size}px`;
-
-            // Assign random initial position across the entire area
-            const leftPosition = Math.random() * (window.innerWidth - size);
-            const topPosition = Math.random() * (window.innerHeight - size);
-            shape.style.left = `${leftPosition}px`;
-            shape.style.top = `${topPosition}px`;
-
-
-            let dx = (Math.random() - 1.0) * 10;  // Slightly reduced speed
-            let dy = (Math.random() - 1.0) * 10;  // Slightly reduced speed
-
-            function moveShape() {
-                let rect = shape.getBoundingClientRect();
-
-                if (rect.left <= 0 || rect.right >= window.innerWidth) {
-                    dx = -dx;
-                }
-                if (rect.top <= 0 || rect.bottom >= window.innerHeight) {
-                    dy = -dy;
-                }
-
-                shape.style.left = (shape.offsetLeft + dx) + 'px';
-                shape.style.top = (shape.offsetTop + dy) + 'px';
-
-                requestAnimationFrame(moveShape);
-            }
-
-            moveShape();
-        });
-    </script>
+    <div class="top-bar">
+        <img src="picture/logo.svg" alt="Logo" class="logo">
+    </div>
 </body>
 </html>
