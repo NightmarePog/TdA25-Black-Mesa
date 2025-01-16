@@ -60,6 +60,45 @@ class User(db.Model):
         """Check if the provided password matches the stored SHA-256 hash."""
         return self.password_hash == hashlib.sha256(password.encode('utf-8')).hexdigest()
 
+@socketio.on('player_has_disconnected')
+def player_has_disconnected(data):
+    print("Player has disconnected event received")
+    print(f"Data received: {data}")  # Debugging: Show received data
+    
+    game_uuid = data['game_uuid']
+    user_id = data['user_id']
+    board = data['board1']
+    domain = data['domain']
+    turn = "X"
+    winner = ""
+    isPlayer = False
+    print("JSEM TASDDDDDDDDDDDDDDDDDDDDD")
+
+    # Získání hry z databáze
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if not game:
+        emit('error', {'message': 'Game not found.'})
+        return
+    players_list = json.loads(game.players) if game.players else []
+
+    if len(players_list) <= 1:
+        call_delete_game_api(game_uuid, domain)
+        print("MAŽU MAPU")
+        return
+
+    for player in players_list:
+        if player['user_id'] == user_id and player['role'] != 'viewer':
+            isPlayer = True
+            if player['role'] == 'X':
+                turn = 'O'
+            for p in players_list:
+                if p['role'] != player['role'] and p['role'] != 'viewer':
+                    winner = p['user_id']
+            break
+
+    if isPlayer:
+        emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": winner}, room=game_uuid)
+
 
 
 @socketio.on('join_game')
@@ -130,13 +169,32 @@ def save_game(game, player_id):
     if not user:
         return
 
-    saved_games = user.saved_games if isinstance(user.saved_games, dict) else {}
+    # Načti existující uložené hry, pokud existují, nebo vytvoř nový prázdný slovník.
+    saved_games = user.saved_games
+
+    # Pokud je saved_games řetězec (JSON), převedeme jej na slovník.
+    if isinstance(saved_games, str):
+        saved_games = json.loads(saved_games)
+    
+    print("----------------------------")
+    print(saved_games)
+
+    # Přidej novou hru do slovníku s UUID jako klíčem.
     saved_games[game.uuid] = game_to_dict(game)
+
+    # Ulož zpět do databáze jako JSON řetězec.
     user.saved_games = json.dumps(saved_games)
     db.session.commit()
-    print(user.saved_games)  # This will print the saved games dictionary.
+    print(user.saved_games)  # Tohle vytiskne aktuální seznam uložených her.
 
+def call_delete_game_api(game_uuid, domain):
+    base_url = "https://a9334987.app.deploy.tourde.app/"
+    if domain != "https://a9334987.app.deploy.tourde.app/" and domain != "":
+        base_url = domain
 
+    url = f'{base_url}api/v1/games/{game_uuid}'
+    response = requests.delete(url)
+    return response
 
 def call_update_game_api(game_uuid, board, name, difficulty, domain):
     base_url = "https://a9334987.app.deploy.tourde.app/"
@@ -198,7 +256,10 @@ def handle_make_move(data):
             db.session.commit()
             # Inform players that the game is over
             #emit('game_over', {'winner': player['username'], 'game_state': game.game_state}, room=game_uuid)
-            save_game(game, player_id)
+            for p in players_list:
+                if p['role'] != 'viewer':
+                    save_game(game, p["user_id"])
+
             emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": player_id}, room=game_uuid)
 
         # Inform players about the game update
@@ -372,6 +433,38 @@ def get_player(id):
         "email": player.email,
         "loginBy": player.login_by
     }), 200
+
+@app.route('/api/v1/saved_games/<int:user_id>', methods=['GET'])
+def get_saved_games(user_id):
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    saved_games = json.loads(user.saved_games)
+    games_list = []
+    
+    for game_uuid, game_data in saved_games.items():
+        game_data["uuid"] = game_uuid  # Přidání UUID do dat pro snadnou identifikaci
+        games_list.append(game_data)
+
+    return jsonify(games_list)
+
+@app.route('/api/v1/saved_games/<int:user_id>/<game_uuid>', methods=['DELETE'])
+def delete_saved_game(user_id, game_uuid):
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    saved_games = json.loads(user.saved_games)
+    if game_uuid in saved_games:
+        del saved_games[game_uuid]
+        user.saved_games = json.dumps(saved_games)
+        db.session.commit()
+        return jsonify({"message": "Game deleted successfully"}), 200
+    else:
+        return jsonify({"error": "Game not found"}), 404
+
+
 
 # Database Initialization
 with app.app_context():

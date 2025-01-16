@@ -14,49 +14,76 @@
         }
 
         body {
-            background-color: #f7f7f7;
+            background-color: #F6F6F6;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             flex-direction: column;
-            color: #333;
+            color: #1A1A1A;
             text-align: center;
             position: relative;
         }
 
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            color: #4CAF50;
+        .game-info-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 5px; /* Zvýšeno o 10px pro posunutí dolů */
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        #gameStatus {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: #FF5722;
-        }
 
-        .board {
-            display: grid;
-            grid-template-columns: repeat(15, 35px);
-            grid-template-rows: repeat(15, 35px);
-            gap: 3px;
-            margin-top: 15px;
-            border-radius: 8px;
+        /* Individual game info block (reduced height and padding) */
+        .game-info {
+            background-color: #FFFFFF;
+            padding: 5px 10px; /* Reduced padding */
+            border-radius: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .cell {
-            width: 35px;
-            height: 35px;
-            border: 1px solid #ddd;
-            background-color: #fff;
+            font-size: 0.9rem; /* Reduced font size */
+            font-weight: bold;
+            color: #1A1A1A;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            margin: 5px;
+            width: 30%;
+        }
+
+        #gameCodeContainer {
+            font-size: 1.2rem;
+            color: #395A9A;
+        }
+
+        #gameStatusContainer, #turnContainer {
+            font-size: 1.2rem;
+            color: #AB2E58;
+        }
+
+        /* Adjusted board size */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px); /* Larger cells for board */
+            grid-template-rows: repeat(15, 30px); /* Increased cell size */
+            gap: 3px;
+            margin-top: 15px; /* Increased space */
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            justify-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Individual cell */
+        .cell {
+            width: 30px; /* Default cell size */
+            height: 30px; /* Default cell size */
+            border: 1px solid #395A9A;
+            background-color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             border-radius: 4px;
             transition: background-color 0.2s ease, transform 0.1s ease;
@@ -67,87 +94,80 @@
         }
 
         .cell.x {
-            color: #FF5722;
-            font-weight: bold;
+            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
+            background-size: cover;
+            background-position: center;
         }
 
         .cell.o {
-            color: #2196F3;
-            font-weight: bold;
+            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
+            background-size: cover;
+            background-position: center;
         }
 
-        .cell:active {
-            background-color: #e0e0e0;
-        }
-
-        .restart-btn {
-            margin-top: 15px;
+        /* New button to go to game */
+        .game-btn {
+            margin-top: 25px; /* Space between game content and button */
             padding: 8px 16px;
             font-size: 1rem;
-            color: #fff;
-            background-color: #4CAF50;
+            color: #FFFFFF;
+            background-color: #395A9A;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
         }
 
-        .restart-btn:hover {
-            background-color: #388E3C;
+        .game-btn:hover {
+            background-color: #1A3C6C;
         }
 
-        .restart-btn:disabled {
-            background-color: #BDBDBD;
-            cursor: not-allowed;
-        }
 
-        /* Game code display */
-        #gameCodeContainer {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #fff;
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 1rem;
-            font-weight: bold;
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* Adjusted font size for mobile responsiveness */
+        @media (max-width: 600px) {
+            .game-info-container {
+                flex-direction: column;
+                align-items: center;
+            }
 
-        #gameCode {
-            font-size: 1.2rem;
-            color: #2196F3;
+            .game-info {
+                width: 80%;
+                margin: 5px 0;
+                font-size: 0.8rem; /* Reduced font size for smaller screens */
+            }
+
+            .board {
+                grid-template-columns: repeat(15, 25px); /* Smaller cells for mobile */
+                grid-template-rows: repeat(15, 25px);
+            }
+
+            .cell {
+                width: 25px;
+                height: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Game</h1>
-    <p id="gameStatus">Waiting for players...</p>
-    <div id="board" class="board"></div>
-    <button id="restartButton" class="restart-btn" style="display: none;">Restart Game</button>
-
-    <!-- Game code display -->
-    <div id="gameCodeContainer">
-        <span>Game Code: </span>
-        <span id="gameCode">Loading...</span>
+    <!-- Game Info Container (name, status, turn) -->
+    <div class="game-info-container">
+        <div id="gameCodeContainer" class="game-info">
+            <span>Game Code: </span><span id="gameCode">Loading...</span>
+        </div>
+        <div id="gameStatusContainer" class="game-info">
+            <span>Status: </span><span id="gameStatus">Waiting for players...</span>
+        </div>
+        <div id="turnContainer" class="game-info">
+            <span>Turn: </span><span id="turn">X</span>
+        </div>
     </div>
 
+    <div id="board" class="board"></div>
+    <!-- Button to go to game -->
+    <button id="gameButton" class="game-btn">Go to main page</button>
+
+
     <script>
-
-        // Načíst obsah z background.html 
-        fetch('background.html') 
-            .then(response => response.text()) 
-            .then(data => { 
-                // Vložit načtený obsah přímo do těla (body) 
-                document.body.insertAdjacentHTML('afterbegin', data); 
-            }) 
-            .catch(error => console.error('Error loading HTML:', error));
-
-            
         const gameUuid = window.location.pathname.split('/').pop();
         const username = localStorage.getItem('username');
         const userId = localStorage.getItem('userId');
@@ -163,9 +183,17 @@
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
-        console.log(baseUrl);
-        let board = Array(15).fill(null).map(() => Array(15).fill(null)); // Default 15x15 board
+
+        let board = Array(15).fill(null).map(() => Array(15).fill(null));
         let gameStarted = false;
+
+        fetch('/static/background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                // Vložit načtený obsah přímo do těla (body) 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
 
         // Fetch game code from API
         fetch(`/api/v1/games/${gameUuid}`)
@@ -184,9 +212,12 @@
         // Event listener for game updates
         socket.on('game_update', (data) => {
             const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
             gameStarted = data.started;
-            if (data.turn) {
+            if (data.turn !== undefined) {
                 currentTurn = data.turn;
+            } else {
+                currentTurn = "X";  // Set to "X" if turn is undefined
             }
 
             if (data.winner) {
@@ -195,12 +226,12 @@
 
             // Check if the game has started
             if (gameStarted && winner === "") {
-                gameStatus.innerText = `Game has started! It's ${data.turn}'s turn.`;
+                gameStatus.innerText = `Game has started!`;
+                turn.innerText = data.turn;
             } else if (winner === "") {
                 gameStatus.innerText = 'Waiting for another player...';
             } else {
                 gameStatus.innerText = `Game over! ${playerList[playerIndex].username} won!`;
-                console.log(`Game over! ${playerList[playerIndex].username} won!`);
             }
 
             // Update the board and check for winner
@@ -214,8 +245,8 @@
         // Event listener for game status updates
         socket.on('game_status', (data) => {
             const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
             gameStatus.innerText = data.message;
-            console.log(data.message);
             playerList = data.players;
             for (const value in data.players) {
                 if (data.players[value].user_id == userId) {
@@ -224,12 +255,13 @@
                 }
             }
 
-            console.log(playerRole);
             drawBoard();
         });
 
         window.addEventListener('beforeunload', () => {
+            socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
             localStorage.setItem('time_from_leaving', Date.now());
+            console.log("User has left the game.");
         });
 
         // Function to draw the game board
@@ -243,14 +275,13 @@
                     cellElement.classList.add('cell');
                     if (cell) {
                         cellElement.classList.add(cell.toLowerCase()); // X or O
-                        cellElement.innerText = cell; // Add symbol X or O
                     }
-                    
+
                     // Disable clicks if game is over or if it's not the player's turn
                     if (gameStarted && !cell && currentTurn === playerRole && winner === "") {
                         cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
                     } else {
-                        cellElement.style.cursor = 'not-allowed'; // Change cursor to not-allowed
+                        cellElement.style.cursor = 'not-allowed';
                     }
 
                     boardElement.appendChild(cellElement);
@@ -278,18 +309,14 @@
             socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col], domain: baseUrl });
         }
 
-        // Error listener
-        socket.on('error', (data) => {
-            alert(data.message);
-        });
-
         // Draw the empty board on page load
         drawBoard();
 
-        // Handle restart game
-        document.getElementById('restartButton').addEventListener('click', () => {
-            socket.emit('restart_game', { game_uuid: gameUuid });
+        // Button to go to game page
+        document.getElementById("gameButton").addEventListener("click", () => {
+            window.location.href = `/game`;
         });
+
     </script>
 </body>
 </html>
