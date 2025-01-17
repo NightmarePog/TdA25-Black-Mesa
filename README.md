@@ -95,7 +95,7 @@ docker run -p 8080:80 -v ${PWD}:/app tda-flask
 
 local application address: `http://127.0.0.1:8080`
 
-## useful recources
+## useful resources
 [Tour De App](https://tourde.app/)
 [task](https://tourde.app/zadani)
 [Repository](https://github.com/NightmarePog/TdA25-Black-Mesa)
