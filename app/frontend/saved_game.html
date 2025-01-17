@@ -197,7 +197,8 @@
         const username = localStorage.getItem('username');
         const userId = localStorage.getItem('userId');
         const isGuest = localStorage.getItem('isGuest');
-        const uuid = localStorage.getItem('uuid');
+        const pathParts = window.location.pathname.split('/');
+        const uuid = pathParts[pathParts.length - 1];
         let gameData = null;
         let playerRole = "";
         let gameName = "";
@@ -221,7 +222,7 @@
             window.location.href = '/login';
         }
 
-        fetch('static/background.html')
+        fetch('/static/background.html')
             .then(response => response.text())
             .then(data => {
                 document.body.insertAdjacentHTML('afterbegin', data);
@@ -259,8 +260,8 @@
 
         // API endpointy
         const API_BASE_URL = "/api/v1/"; // Uprav podle své konfigurace
-        const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
-
+        const GAME_API_URL = `${API_BASE_URL}saved_games/${localStorage.getItem("userId")}/${uuid}`;
+        console.log(GAME_API_URL)
         async function getGameData() {
             try {
                 const response = await fetch(`${GAME_API_URL}`, {
@@ -294,20 +295,6 @@
                     // Kliknutí na buňku
                     cell.addEventListener("click", () => handleCellClick(row, col));
                 }
-            }
-        }
-
-        // Aktualizace herního stavu na základě API dat
-        async function fetchGameState() {
-            try {
-                const response = await fetch(GAME_API_URL);
-                if (response.ok) {
-                    gameData = await response.json();
-                } else {
-                    console.error("Chyba při načítání herního stavu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
             }
         }
 
@@ -347,7 +334,7 @@
             }
 
             // Zobrazení hráčů
-            updatePlayerList();
+           // updatePlayerList();
 
             // Aktualizace herního plánu
             updateBoardUI(winnerId);
@@ -364,12 +351,6 @@
                     cellElement.classList.add('cell');
                     if (cell) {
                         cellElement.classList.add(cell.toLowerCase());
-                    }
-                    
-                    if (winnerId === null) {
-                        cellElement.addEventListener('click', () => handleCellClick(rowIndex, colIndex));
-                    } else {
-                        cellElement.style.cursor = 'not-allowed';
                     }
 
                     boardElement.appendChild(cellElement);
@@ -392,6 +373,10 @@
 
         // Kliknutí na buňku
         async function handleCellClick(row, col) {
+            console.log(board[row][col] !== "" || (winner !== "" || winner !== undefined))
+            console.log(winner !== "")
+            console.log(winner !== undefined)
+            console.log(board[row][col] !== "")
             if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
                 return;
             }
@@ -404,23 +389,6 @@
             } else {
                 currentTurn = "X";
             }
-
-            try {
-                const response = await fetch(`${GAME_API_URL}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "board": board, "difficulty": gameData.difficulty, name: gameData.name, "save_game_to_user": localStorage.getItem('userId') }),
-                });
-
-                if (response.ok) {
-                    const gameData = await response.json();
-                    updateGameState(gameData);
-                } else {
-                    console.error("Chyba při posílání tahu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
         }
 
         // Aktualizace seznamu hráčů
@@ -429,8 +397,7 @@
             playerList.forEach((player) => {
                 const playerItem = document.createElement("div");
                 playerItem.classList.add("player-item");
-                
-                if (player.role === currentTurn) {
+                if (player.turn === currentTurn) {
                     playerItem.classList.add("turn");
                 }
                 playerItem.textContent = player.username;
@@ -440,10 +407,6 @@
 
         // Načtení iniciálního herního stavu
         createBoard();
-        fetchGameState();
-
-        // Opakované aktualizace herního stavu
-        setInterval(fetchGameState, 2000);
 
         document.getElementById("menuButton").addEventListener("click", () => {
             window.location.href = `/menu`;

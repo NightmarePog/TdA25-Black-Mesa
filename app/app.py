@@ -25,6 +25,7 @@ class Game(db.Model):
     board = db.Column(db.JSON, nullable=False)
     players = db.Column(db.JSON, default=[])  # List of players (ID, username, role)
     started = db.Column(db.Boolean, default=False)
+    winnerId = db.Column(db.Integer, nullable=True)
     code = db.Column(db.String(6), nullable=True, unique=True)  # 6-character code for game
 
     def __init__(self, **kwargs):
@@ -175,9 +176,6 @@ def save_game(game, player_id):
     # Pokud je saved_games řetězec (JSON), převedeme jej na slovník.
     if isinstance(saved_games, str):
         saved_games = json.loads(saved_games)
-    
-    print("----------------------------")
-    print(saved_games)
 
     # Přidej novou hru do slovníku s UUID jako klíčem.
     saved_games[game.uuid] = game_to_dict(game)
@@ -241,6 +239,7 @@ def handle_make_move(data):
 
         # Call the API to update the game state.
         response = call_update_game_api(game_uuid, board, game.name, game.difficulty, data['domain'])
+        
         if response.status_code != 200:
             print(response.json())
             emit('error', {'message': 'Failed to save the game state via API.'})
@@ -260,10 +259,10 @@ def handle_make_move(data):
                 if p['role'] != 'viewer':
                     save_game(game, p["user_id"])
 
-            emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": player_id}, room=game_uuid)
+            emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": player_id, "game_status": response.json().get('gameState', None)}, room=game_uuid)
 
         # Inform players about the game update
-        emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn}, room=game_uuid)
+        emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "game_status": response.json().get('gameState', None)}, room=game_uuid)
     else:
         emit('error', {'message': 'This spot is already taken.'})
 
@@ -440,13 +439,20 @@ def get_saved_games(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    saved_games = json.loads(user.saved_games)
+        # Načti existující uložené hry, pokud existují, nebo vytvoř nový prázdný slovník.
+    saved_games = user.saved_games
+
+    # Pokud je saved_games řetězec (JSON), převedeme jej na slovník.
+    if isinstance(saved_games, str):
+        saved_games = json.loads(saved_games)
     games_list = []
-    
+
     for game_uuid, game_data in saved_games.items():
         game_data["uuid"] = game_uuid  # Přidání UUID do dat pro snadnou identifikaci
         games_list.append(game_data)
 
+    print("************---------------------------")
+    print(games_list)
     return jsonify(games_list)
 
 @app.route('/api/v1/saved_games/<int:user_id>/<game_uuid>', methods=['DELETE'])
@@ -463,6 +469,19 @@ def delete_saved_game(user_id, game_uuid):
         return jsonify({"message": "Game deleted successfully"}), 200
     else:
         return jsonify({"error": "Game not found"}), 404
+    
+
+@app.route('/api/v1/saved_games/<int:user_id>/<game_uuid>', methods=['GET'])
+def get_saved_game(user_id, game_uuid):
+    print("GET SAVED GAME")
+    user = db.session.get(User, user_id)
+    print(user)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    saved_games = json.loads(user.saved_games)
+    print(game_uuid)
+    return jsonify(saved_games[game_uuid])
 
 
 
@@ -577,6 +596,11 @@ def determine_game_state(board):
     o_count = sum(cell == "O" for row in board for cell in row)
 
     # Check if player has the chance to win with 5 in a row or valid oblique 4-in-a-row
+    if check_winner(board, "X"):
+        return "endgame"
+    if check_winner(board, "O"):
+        return "endgame"
+    
     result = check_for_five_and_oblique(board)
     print(result)
     if result and result[0]:  # Make sure the result is not None and check the first element
@@ -585,8 +609,10 @@ def determine_game_state(board):
             print("11111111")
             return "midgame"
         elif x_count == o_count + 1 and result[1] == "X":
+            print("HRÁČ 2 TO MŮŽE ZASTAVIT")
             return "midgame"
             
+        print("VRACÍM ENDGAME")
         return "endgame"
 
     if x_count + o_count <= 5:
@@ -601,6 +627,7 @@ def determine_game_state(board):
 def create_game():
     data = request.get_json()
     try:
+        print(data)
         is_valid, error = validate_game(data['board'])
         if not is_valid:
             abort(400, description=error)
@@ -609,8 +636,10 @@ def create_game():
             name=data['name'],
             difficulty=data['difficulty'],
             board=data['board'],
-            game_state=game_state
+            game_state=game_state,
+            players=data.get('players')
         )
+
         db.session.add(game)
         db.session.commit()
         return jsonify(game_to_dict(game)), 201
@@ -667,7 +696,32 @@ def update_game(uuid):
         game.name = data['name']
         game.difficulty = data['difficulty']
         game.board = data['board']
-        game.game_state = determine_game_state(data['board'])
+        players = game.players
+        if isinstance(players, str):
+            players = json.loads(game.players)
+
+        if check_winner(data['board'], "X"):
+            game.game_state = 'endgame'
+
+            for value in players:
+                if value['role'] == "X":
+                    game.winnerId = value['user_id']
+
+        elif check_winner(data['board'], "O"):
+            game.game_state = 'endgame'
+            
+            for value in players:
+                print(value)
+                if value['role'] == "O":
+                    game.winnerId = value['user_id']
+        else:
+            game.game_state = determine_game_state(data['board'])
+
+        if data.get("save_game_to_user"):
+            for value in players:
+                if value["role"] == "X" or value["role"] == "O":
+                    save_game(game, data.get("save_game_to_user"))
+
         db.session.commit()
         return jsonify(game_to_dict(game)), 200
     except KeyError as e:
@@ -695,13 +749,23 @@ def game_to_dict(game):
         "gameState": game.game_state,
         "board": game.board,
         "code": game.code,
+        "winnerId": game.winnerId,
+        "players": game.players
     }
 
 
 #-------------------FRONTEND ROUTES-------------------
+@app.route('/game/<uuid>', methods=['GET'])
+def saved_game_page(uuid):
+    return render_template('saved_game.html', uuid=uuid)
+
+@app.route('/menu', methods=['GET'])
+def menu_page():
+    return render_template('menu.html')
+
 @app.route('/game', methods=['GET'])
 def main_page():
-    return render_template('main.html')
+    return render_template('game.html')
 
 @app.route('/', methods=['GET'])
 def start_page():
@@ -715,12 +779,12 @@ def login_page():
 def register_page():
     return render_template('register.html')
 
-@app.route('/game/<uuid>', methods=['GET'])
+@app.route('/multiplayer-game/<uuid>', methods=['GET'])
 def game_page(uuid):
     game = Game.query.get(uuid)
     if not game:
         abort(404)
-    return render_template('game.html', game=game_to_dict(game))
+    return render_template('multiplayer_game.html', game=game_to_dict(game))
 
 # Database Initialization
 with app.app_context():

@@ -12,11 +12,12 @@
             padding: 0;
             background-color: #F6F6F6;
             color: #1A1A1A;
-            overflow-x: auto; /* Povolení posouvání horizontálně */
+            height: 100%;
+            overflow-y: auto;
         }
 
         .header {
-            position: fixed; /* Fixování v pravém horním rohu */
+            position: fixed;
             top: 15px;
             right: 15px;
             display: flex;
@@ -74,7 +75,7 @@
 
         h1 {
             text-align: center;
-            margin-top: 70px; /* Posun kvůli fixnímu tlačítku */
+            margin-top: 70px;
         }
 
         .game-container {
@@ -88,7 +89,7 @@
         .game-creation {
             flex: 1;
             max-width: 500px;
-            min-width: 300px; /* Zajištění čitelnosti na mobilu */
+            min-width: 300px;
             background: #FFFFFF;
             border: 1px solid #CCC;
             border-radius: 10px;
@@ -135,7 +136,7 @@
         }
 
         .game-container .game-creation:last-child button {
-            margin-top: 68px; /* Posunutí tlačítka "Join Game" níže */
+            margin-top: 68px;
         }
 
         .game-list {
@@ -145,6 +146,8 @@
             border: 1px solid #CCC;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .game-list table {
@@ -157,7 +160,7 @@
         }
 
         .game-list button {
-            background-color: #E31837;
+            background-color: #395A9A;
             color: #FFFFFF;
             border: none;
             padding: 8px 12px;
@@ -172,7 +175,7 @@
 
         @media screen and (max-width: 600px) {
             .game-container {
-                flex-direction: column; /* Svislé uspořádání na malých obrazovkách */
+                flex-direction: column;
                 gap: 20px;
             }
 
@@ -187,9 +190,10 @@
             }
 
             h1 {
-                font-size: 18px; /* Zmenšení nadpisu pro mobil */
+                font-size: 18px;
             }
         }
+
     </style>
 </head>
 <body>
@@ -217,11 +221,11 @@
                     <td><label for="gameDifficulty">Difficulty:</label></td>
                     <td>
                         <select id="gameDifficulty">
-                            <option value="začátečník">Začátečník</option>
-                            <option value="jednoduchá">Jednoduchá</option>
-                            <option value="pokročilá">Pokročilá</option>
-                            <option value="těžká">Těžká</option>
-                            <option value="nejtěžší">Nejtěžší</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Hard">Hard</option>
+                            <option value="The hardest">The hardest</option>
                         </select>
                     </td>
                 </tr>
@@ -239,10 +243,42 @@
             </table>
             <button id="joinGame">Join Game</button>
         </div>
+
+        <div class="game-creation">
+            <h2>Play Locally</h2>
+            <table>
+                <tr>
+                    <td><label for="localPlayer1">Player 1 Name:</label></td>
+                    <td><input type="text" id="localPlayer1" placeholder="Enter player 1 name"></td>
+                </tr>
+                <tr>
+                    <td><label for="localPlayer2">Player 2 Name:</label></td>
+                    <td><input type="text" id="localPlayer2" placeholder="Enter player 2 name"></td>
+                </tr>
+                <tr>
+                    <td><label for="localGameDifficulty">Difficulty:</label></td>
+                    <td>
+                        <select id="localGameDifficulty">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Hard">Hard</option>
+                            <option value="The hardest">The hardest</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button id="startLocalGame">Start Local Game</button>
+        </div>
     </div>
 
     <div class="game-list" id="savedGamesList">
         <h2>Saved Games</h2>
+        <div>
+            <button id="sortByName">Sort by Name</button>
+            <button id="sortByDate">Sort by Date</button>
+            <button id="sortByDifficulty">Sort by Difficulty</button>
+        </div>
         <table id="gamesTable">
             <!-- Tady se budou zobrazovat uložené hry -->
         </table>
@@ -269,6 +305,44 @@
         if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
             handleLogout();
         }
+
+        document.getElementById('startLocalGame').addEventListener('click', () => {
+                const player1 = document.getElementById('localPlayer1').value.trim();
+                const player2 = document.getElementById('localPlayer2').value.trim();
+
+                if (!player1 || !player2) {
+                    alert('Please enter names for both players.');
+                    return;
+                }
+                console.log(document.getElementById('localGameDifficulty').value)
+                const localGameData = {
+                    name: player1 + ' vs ' + player2,
+                    players: [{"user_id": 1, "username": player1, "role": "X"}, {"user_id": 2, "username": player2, "role": "O"}],
+                    difficulty: document.getElementById('localGameDifficulty').value,
+                    board: Array(15).fill(null).map(() => Array(15).fill(""))
+                };
+                let uuid = "";
+
+            fetch('/api/v1/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(localGameData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                uuid = data.uuid;
+            })
+            .catch(error => console.error('Error:', error));
+                setTimeout(() => {
+                    console.log('Game created successfully');
+                    localStorage.setItem('uuid', uuid);
+                    // Přesměrování na lokální herní stránku
+                    window.location.href = '/game';
+                    }   
+                , 1000); // Pauza 1 sekunda (1000 milisekund)
+            });
 
         window.addEventListener('beforeunload', () => {
             localStorage.setItem('time_from_leaving', Date.now());
@@ -330,7 +404,7 @@
                 })
                 .then(data => {
                     console.log('Game created successfully:', data);
-                    window.location.href = `/game/${data.uuid}`;
+                    window.location.href = `/multiplayer-game/${data.uuid}`;
                 })
                 .catch(error => {
                     console.error('Error creating game:', error);
@@ -338,49 +412,84 @@
                 });
         });
 
-                // Načíst seznam her
-                fetch(`/api/v1/saved_games/${userId}`, {
-            method: 'GET'
-        })
-        .then(response => response.json())
-        .then(games => {
-            const gamesTable = document.getElementById('gamesTable');
-            games.forEach(game => {
-                const row = document.createElement('tr');
+           // Načíst seznam her
+            fetch(`/api/v1/saved_games/${userId}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(games => {
+                const gamesTable = document.getElementById('gamesTable');
+                renderGameList(games);
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = game.name;
-                row.appendChild(nameCell);
+                // Funkce pro renderování her
+                function renderGameList(games) {
+                    gamesTable.innerHTML = ''; // Vyčistit stávající seznam
+                    games.forEach(game => {
+                        const row = document.createElement('tr');
 
-                const dateCell = document.createElement('td');
-                const createdAt = new Date(game.createdAt).toLocaleString();
-                dateCell.textContent = createdAt;
-                row.appendChild(dateCell);
+                        const nameCell = document.createElement('td');
+                        nameCell.textContent = game.name;
+                        row.appendChild(nameCell);
 
-                const actionsCell = document.createElement('td');
-                
-                const showButton = document.createElement('button');
-                showButton.textContent = 'Show';
-                showButton.onclick = () => {
-                    window.location.href = `/game/${game.uuid}`;
-                };
+                        const dateCell = document.createElement('td');
+                        const updatedAt = new Date(game.updatedAt).toLocaleString();
+                        dateCell.textContent = updatedAt;
+                        row.appendChild(dateCell);
 
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => {
-                    deleteGame(game.uuid);
-                };
+                        const difficultyCell = document.createElement('td');
+                        difficultyCell.textContent = game.difficulty;
+                        row.appendChild(difficultyCell);
 
-                actionsCell.appendChild(showButton);
-                actionsCell.appendChild(deleteButton);
-                row.appendChild(actionsCell);
+                        const actionsCell = document.createElement('td');
 
-                gamesTable.appendChild(row);
+                        const showButton = document.createElement('button');
+                        showButton.textContent = 'Show';
+                        showButton.onclick = () => {
+                            window.location.href = `/game/${game.uuid}`;
+                        };
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => {
+                            deleteGame(game.uuid);
+                        };
+
+                        actionsCell.appendChild(showButton);
+                        actionsCell.appendChild(deleteButton);
+                        row.appendChild(actionsCell);
+
+                        gamesTable.appendChild(row);
+                    });
+                }
+
+                // Funkce pro seřazení her podle názvu
+                document.getElementById('sortByName').addEventListener('click', () => {
+                    games.sort((a, b) => a.name.localeCompare(b.name));
+                    renderGameList(games);
+                });
+
+                // Funkce pro seřazení her podle data
+                document.getElementById('sortByDate').addEventListener('click', () => {
+                    games.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                    renderGameList(games);
+                });
+
+                // Funkce pro seřazení her podle obtížnosti
+                document.getElementById('sortByDifficulty').addEventListener('click', () => {
+                    const difficultyOrder = {
+                        "Beginner": 1,
+                        "Easy": 2,
+                        "Advanced": 3,
+                        "Hard": 4,
+                        "The hardest": 5
+                    };
+                    games.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+                    renderGameList(games);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching saved games:', error);
             });
-        })
-        .catch(error => {
-            console.error('Error fetching saved games:', error);
-        });
 
         // Funkce pro smazání hry
         function deleteGame(gameUuid) {
@@ -422,7 +531,7 @@
                 })
                 .then(data => {
                     console.log('Joined game successfully:', data);
-                    window.location.href = `/game/${data.uuid}`;
+                    window.location.href = `/multiplayer-game/${data.uuid}`;
                 })
                 .catch(error => {
                     console.error('Error joining game:', error);

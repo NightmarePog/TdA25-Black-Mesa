@@ -120,7 +120,7 @@
         const userIdStorage = localStorage.getItem('userId');
 
         if (userIdStorage) {
-            window.location.href = '/game';
+            window.location.href = '/menu';
         }
 
         // Přihlášení jako registrovaný uživatel
@@ -142,7 +142,7 @@
                 if (data.id) {
                     localStorage.setItem('userId', data.id);
                     localStorage.setItem('username', data.username);
-                    window.location.href = '/game';
+                    window.location.href = '/menu';
                 } else {
                     alert(data.message || 'Login failed');
                 }
@@ -170,7 +170,7 @@
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('isGuest', 'true');
                     localStorage.setItem('time_from_leaving', Date.now());
-                    window.location.href = '/game';
+                    window.location.href = '/menu';
                 } else {
                     alert(data.message || 'Guest login failed');
                 }

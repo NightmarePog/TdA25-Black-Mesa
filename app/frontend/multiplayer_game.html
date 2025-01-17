@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #F6F6F6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: #1A1A1A;
+            text-align: center;
+            position: relative;
+        }
+
+        .game-info-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 5px; 
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .game-info {
+            background-color: #FFFFFF;
+            padding: 5px 10px; 
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0rem; 
+            font-weight: bold;
+            color: #AB2E58;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            width: 22%; /* Adjusted to fit four blocks side by side */
+        }
+
+        #gameCodeContainer {
+            font-size: 1.2rem;
+            color: #395A9A;
+        }
+
+        #gameStatusContainer, #turnContainer, #gameStateContainer {
+            font-size: 1.2rem;
+        }
+
+        #gameStatusContainer {
+            color: #AB2E58;
+        }
+
+        #gameStateContainer {
+            color: #AB2E58;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px); 
+            grid-template-rows: repeat(15, 30px); 
+            gap: 3px;
+            margin-top: 15px; 
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            justify-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 30px; 
+            height: 30px; 
+            border: 1px solid #395A9A;
+            background-color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+        }
+
+        .cell.x {
+            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .cell.o {
+            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-btn {
+            margin-top: 25px; 
+            padding: 8px 16px;
+            font-size: 1rem;
+            color: #FFFFFF;
+            background-color: #395A9A;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .game-btn:hover {
+            background-color: #1A3C6C;
+        }
+
+        .player-list {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            width: 200px;
+            font-size: 1rem;
+        }
+
+        .player-item {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item.turn {
+            background-color: #395A9A;
+            color: #FFFFFF;
+        }
+
+        @media (max-width: 600px) {
+            .game-info-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .game-info {
+                width: 80%;
+                margin: 5px 0;
+                font-size: 0.8rem; 
+            }
+
+            .board {
+                grid-template-columns: repeat(15, 25px); 
+                grid-template-rows: repeat(15, 25px);
+            }
+
+            .cell {
+                width: 25px;
+                height: 25px;
+            }
+
+            .player-list {
+                top: 10px;
+                right: 10px;
+                width: 150px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-info-container">
+        <div id="gameCodeContainer" class="game-info">
+            <span>Game Code: </span><span id="gameCode">Loading...</span>
+        </div>
+        <div id="gameStatusContainer" class="game-info">
+            <span>Status: </span><span id="gameStatus">Waiting for players...</span>
+        </div>
+        <div id="turnContainer" class="game-info">
+            <span>Turn: </span><span id="turn">X</span>
+        </div>
+        <div id="gameStateContainer" class="game-info">
+            <span id="gameState">Initializing...</span>
+        </div>
+    </div>
+
+    <div id="board" class="board"></div>
+    <div class="player-list" id="playerList"></div>
+    <button id="gameButton" class="game-btn">Go to main page</button>
+
+    <script>
+        const gameUuid = window.location.pathname.split('/').pop();
+        const username = localStorage.getItem('username');
+        const userId = localStorage.getItem('userId');
+        let playerRole = "";
+        let currentTurn = "X";
+        let winner = "";
+        let winnerName = "";
+        let playerIndex = 0;
+        let playerList = [];
+        const fullUrl = window.location.href;
+        let baseUrl = new URL(fullUrl).origin;
+        const socket = io();
+
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
+        }
+
+        let board = Array(15).fill(null).map(() => Array(15).fill(null));
+        let gameStarted = false;
+
+        fetch('/static/background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
+
+        fetch(`/api/v1/games/${gameUuid}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('gameCode').innerText = data.code;
+            })
+            .catch(error => {
+                console.error('Error fetching game code:', error);
+                document.getElementById('gameCode').innerText = 'Error';
+            });
+
+        socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
+
+        socket.on('game_update', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
+            const gameState = document.getElementById('gameState');
+
+            gameStarted = data.started;
+            if (data.turn !== undefined) {
+                currentTurn = data.turn;
+            } else {
+                currentTurn = "X";
+            }
+
+            if (data.winner) {
+                winner = data.winner;
+            }
+
+            if (gameStarted && winner === "") {
+                gameStatus.innerText = `Game has started!`;
+                turn.innerText = data.turn;
+            } else if (winner === "") {
+                gameStatus.innerText = 'Waiting for another player...';
+            } else {
+                for (const value in playerList) {
+                    if (playerList[value].user_id == winner) {
+                        winnerName = playerList[value].username;
+                    }
+                }
+                gameStatus.innerText = `Game over! ${winnerName} won!`;
+            }
+            console.log(data.game_status);
+            if (data.game_status) {
+                if (data.game_status === "opening") {
+                    gameState.innerText = "It's warming up";
+                } else if (data.game_status === "midgame") {
+                    gameState.innerText = "Thrilling";
+                } else if (data.game_status === "endgame") {
+                    gameState.innerText = "Could it be the end?";
+                } else {
+                    gameState.innerText = data.game_status;
+                }
+            }
+
+            if (data.board) {
+                board = data.board;
+            }
+
+            updatePlayerList();
+            drawBoard();
+        });
+
+        socket.on('game_status', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
+            gameStatus.innerText = data.message;
+            playerList = data.players;
+            for (const value in data.players) {
+                if (data.players[value].user_id == userId) {
+                    playerRole = data.players[value].role;
+                    playerIndex = value;
+                }
+            }
+
+            updatePlayerList();
+            drawBoard();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+
+        function drawBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    if (cell) {
+                        cellElement.classList.add(cell.toLowerCase());
+                    }
+
+                    if (gameStarted && !cell && currentTurn === playerRole && winner === "") {
+                        cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
+                    } else {
+                        cellElement.style.cursor = 'not-allowed';
+                    }
+
+                    boardElement.appendChild(cellElement);
+                });
+            });
+        }
+
+        function makeMove(row, col) {
+            if (currentTurn !== playerRole) {
+                alert("It's not your turn!");
+                return;
+            }
+            if (winner !== "") {
+                alert("The game is over. No more moves can be made.");
+                return;
+            }
+
+            socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col], domain: baseUrl });
+        }
+
+        drawBoard();
+
+        function updatePlayerList() {
+            const playerListElement = document.getElementById('playerList');
+            playerListElement.innerHTML = '';
+
+            playerList.forEach(player => {
+                const playerItem = document.createElement('div');
+                playerItem.classList.add('player-item');
+                if (player.user_id === userId) {
+                    playerItem.style.fontWeight = 'bold';
+                }
+
+                if (currentTurn === player.role) {
+                    playerItem.classList.add('turn');
+                }
+
+                playerItem.innerHTML = `
+                    <span>${player.username}</span>
+                    <span>${player.role}</span>
+                `;
+
+                playerListElement.appendChild(playerItem);
+            });
+        }
+
+        document.getElementById("gameButton").addEventListener("click", () => {
+            window.location.href = `/menu`;
+        });
+
+    </script>
+</body>
+</html>

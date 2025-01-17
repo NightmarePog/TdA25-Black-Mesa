@@ -104,7 +104,7 @@
         const userIdStorage = localStorage.getItem('userId');
             
         if (userIdStorage) {
-            window.location.href = '/game';
+            window.location.href = '/menu';
         }
         
         document.getElementById('registerForm').addEventListener('submit', function(event) {
@@ -126,7 +126,7 @@
                 if (data.id) {
                     localStorage.setItem('userId', data.id);
                     localStorage.setItem('username', data.username);
-                    window.location.href = '/game';
+                    window.location.href = '/menu';
                 } else {
                     alert(data.message || 'Registration failed');
                 }
