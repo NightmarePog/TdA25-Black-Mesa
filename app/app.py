@@ -170,7 +170,6 @@ def save_game(game, player_id):
     if not user:
         return
 
-    # Načti existující uložené hry, pokud existují, nebo vytvoř nový prázdný slovník.
     saved_games = user.saved_games
 
     # Pokud je saved_games řetězec (JSON), převedeme jej na slovník.
@@ -261,6 +260,10 @@ def handle_make_move(data):
 
             emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "winner": player_id, "game_status": response.json().get('gameState', None)}, room=game_uuid)
 
+        for p in players_list:
+            if p['role'] != 'viewer':
+                save_game(game, p["user_id"])
+                
         # Inform players about the game update
         emit('game_update', {'board': board, 'players': players_list, 'started': game.started, "turn": turn, "game_status": response.json().get('gameState', None)}, room=game_uuid)
     else:
@@ -479,7 +482,11 @@ def get_saved_game(user_id, game_uuid):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    saved_games = json.loads(user.saved_games)
+    saved_games = user.saved_games
+
+    # Pokud je saved_games řetězec (JSON), převedeme jej na slovník.
+    if isinstance(saved_games, str):
+        saved_games = json.loads(saved_games)
     print(game_uuid)
     return jsonify(saved_games[game_uuid])
 

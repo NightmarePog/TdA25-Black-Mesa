@@ -288,6 +288,8 @@
         const userId = localStorage.getItem('userId');
         const username = localStorage.getItem('username');
         const isGuest = localStorage.getItem('isGuest') === 'true';
+        
+        localStorage.removeItem('playedUUID');
 
         fetch('static/background.html')
             .then(response => response.text())
@@ -442,6 +444,17 @@
 
                         const actionsCell = document.createElement('td');
 
+                        const playButton = document.createElement('button');
+                        if (game.winnerId === null) {
+                            playButton.textContent = 'Play';
+                            playButton.onclick = () => {
+                                localStorage.setItem("playedUUID", game.uuid);
+                                window.location.href = `/game/${game.uuid}`;
+                            };
+                        } else {
+                            playButton.textContent = 'Game already played';
+                        }
+
                         const showButton = document.createElement('button');
                         showButton.textContent = 'Show';
                         showButton.onclick = () => {
@@ -454,6 +467,10 @@
                             deleteGame(game.uuid);
                         };
 
+                        playButton.style.marginRight = '10px';
+                        showButton.style.marginRight = '10px';
+
+                        actionsCell.appendChild(playButton);
                         actionsCell.appendChild(showButton);
                         actionsCell.appendChild(deleteButton);
                         row.appendChild(actionsCell);

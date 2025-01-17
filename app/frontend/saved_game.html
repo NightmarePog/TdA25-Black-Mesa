@@ -194,11 +194,13 @@
     <button id="menuButton" class="game-btn">Go to main page</button>
 
     <script>
+        const playedUUID = localStorage.getItem("playedUUID");
         const username = localStorage.getItem('username');
         const userId = localStorage.getItem('userId');
         const isGuest = localStorage.getItem('isGuest');
         const pathParts = window.location.pathname.split('/');
         const uuid = pathParts[pathParts.length - 1];
+        const cont = playedUUID === uuid;
         let gameData = null;
         let playerRole = "";
         let gameName = "";
@@ -208,6 +210,10 @@
         let playerList = [];
         let gameCode = "local";
         let board = Array(15).fill(null).map(() => Array(15).fill(null));
+
+        if (cont) {
+
+        }
 
         // Získání referencí na prvky na stránce
         const boardElement = document.getElementById("board");
@@ -255,22 +261,32 @@
         }
 
         window.addEventListener('beforeunload', () => {
+            localStorage.removeItem("playerUUID"); 
             localStorage.setItem('time_from_leaving', Date.now());
         });
 
         // API endpointy
         const API_BASE_URL = "/api/v1/"; // Uprav podle své konfigurace
-        const GAME_API_URL = `${API_BASE_URL}saved_games/${localStorage.getItem("userId")}/${uuid}`;
-        console.log(GAME_API_URL)
+        const SAVED_GAME_API_URL = `${API_BASE_URL}saved_games/${localStorage.getItem("userId")}/${uuid}`;
+        const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
         async function getGameData() {
             try {
-                const response = await fetch(`${GAME_API_URL}`, {
+                const response = await fetch(`${SAVED_GAME_API_URL}`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                 });
 
                 if (response.ok) {
                     const gameData = await response.json();
+                    if (gameData.winnerId !== null && cont) {
+                        window.location.href = '/menu';
+                    }
+                    const xCount = gameData.board.flat().filter(cell => cell === "X").length;
+                    const oCount = gameData.board.flat().filter(cell => cell === "O").length;
+
+                    // "X" always starts, so if counts are equal, it's "X"'s turn; otherwise, it's "O"'s turn.
+                    const currentTurn1 = xCount === oCount ? "X" : "O";
+                    currentTurn = currentTurn1
                     updateGameState(gameData);
                 } else {
                     console.error("Chyba při posílání tahu:", response.statusText);
@@ -293,7 +309,9 @@
                     boardElement.appendChild(cell);
 
                     // Kliknutí na buňku
-                    cell.addEventListener("click", () => handleCellClick(row, col));
+                    if (cont) {
+                        cell.addEventListener("click", () => handleCellClick(row, col));
+                    }
                 }
             }
         }
@@ -334,7 +352,7 @@
             }
 
             // Zobrazení hráčů
-           // updatePlayerList();
+            updatePlayerList();
 
             // Aktualizace herního plánu
             updateBoardUI(winnerId);
@@ -351,6 +369,14 @@
                     cellElement.classList.add('cell');
                     if (cell) {
                         cellElement.classList.add(cell.toLowerCase());
+                    }
+
+                    if (cont) {
+                        if (winnerId === null) {
+                            cellElement.addEventListener('click', () => handleCellClick(rowIndex, colIndex));
+                        } else {
+                            cellElement.style.cursor = 'not-allowed';
+                        }
                     }
 
                     boardElement.appendChild(cellElement);
@@ -373,10 +399,6 @@
 
         // Kliknutí na buňku
         async function handleCellClick(row, col) {
-            console.log(board[row][col] !== "" || (winner !== "" || winner !== undefined))
-            console.log(winner !== "")
-            console.log(winner !== undefined)
-            console.log(board[row][col] !== "")
             if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
                 return;
             }
@@ -389,10 +411,42 @@
             } else {
                 currentTurn = "X";
             }
+
+            console.log(GAME_API_URL)
+            try {
+                const response = await fetch(`${GAME_API_URL}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "board": board, "difficulty": gameData.difficulty, name: gameData.name, "save_game_to_user": localStorage.getItem('userId') }),
+                });
+
+                if (response.ok) {
+                    const gameData = await response.json();
+                    updateGameState(gameData);
+                } else {
+                    console.error("Chyba při posílání tahu:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Chyba při komunikaci s API:", error);
+            }
+        }
+
+        async function fetchGameState() {
+            try {
+                const response = await fetch(GAME_API_URL);
+                if (response.ok) {
+                    gameData = await response.json();
+                } else {
+                    console.error("Chyba při načítání herního stavu:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Chyba při komunikaci s API:", error);
+            }
         }
 
         // Aktualizace seznamu hráčů
         function updatePlayerList() {
+           try {
             playerListElement.innerHTML = "";
             playerList.forEach((player) => {
                 const playerItem = document.createElement("div");
@@ -403,10 +457,18 @@
                 playerItem.textContent = player.username;
                 playerListElement.appendChild(playerItem);
             });
+           } catch (error) {
+                return false
+           }
         }
 
         // Načtení iniciálního herního stavu
         createBoard();
+        fetchGameState();
+
+        // Opakované aktualizace herního stavu
+        setInterval(fetchGameState, 2000);
+
 
         document.getElementById("menuButton").addEventListener("click", () => {
             window.location.href = `/menu`;
