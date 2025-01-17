@@ -66,6 +66,7 @@ Tato webová aplikace umožňuje uživatelům hrát piškvorky:
 - **Zeno**: Full-stack developer
 - **Nightmare**: Back-end developer
 - **Maferix**: Front-end developer
+- **Blahaj(plushie)**: mental support
 
 ## pipenv
 - pipenv ( `pip install --user pipenv`)
