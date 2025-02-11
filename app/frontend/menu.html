@@ -415,7 +415,7 @@
         });
 
            // Načíst seznam her
-            fetch(`/api/v1/users/saved_games/${userId}`, {
+            fetch(`/api/v1/saved_games/${userId}`, {
                 method: 'GET'
             })
             .then(response => response.json())
@@ -511,7 +511,7 @@
         // Funkce pro smazání hry
         function deleteGame(gameUuid) {
             if (confirm('Are you sure you want to delete this game?')) {
-                fetch(`/api/v1/users/saved_games/${userId}/${gameUuid}`, {
+                fetch(`/api/v1/saved_games/${userId}/${gameUuid}`, {
                     method: 'DELETE'
                 })
                 .then(response => {
@@ -536,7 +536,7 @@
                 return;
             }
 
-            fetch(`/api/v1/games/get_game_data_by_code/${gameCode}`, {
+            fetch(`/api/v1/get_game_data_by_code/${gameCode}`, {
                 method: 'GET'
             })
                 .then(response => {
