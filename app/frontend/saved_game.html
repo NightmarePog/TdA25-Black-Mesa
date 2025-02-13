@@ -267,7 +267,7 @@
 
         // API endpointy
         const API_BASE_URL = "/api/v1/"; // Uprav podle své konfigurace
-        const SAVED_GAME_API_URL = `${API_BASE_URL}saved_games/${localStorage.getItem("userId")}/${uuid}`;
+        const SAVED_GAME_API_URL = `${API_BASE_URL}users/saved_games/${localStorage.getItem("userId")}/${uuid}`;
         const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
         async function getGameData() {
             try {

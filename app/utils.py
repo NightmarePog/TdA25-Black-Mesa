@@ -18,6 +18,32 @@ def handle_errors(app):
     @app.errorhandler(422)
     def unprocessable_entity(error):
         return jsonify({"code": 422, "message": f"Semantic error: {error.description}"}), 422
+    
+def update_rating(user_id, user2_id, type,num=None):
+    user = User.query.get(user_id)
+    user2 = User.query.get(user2_id)
+
+    if not num:
+        num = 1
+
+    if not user:
+        return
+    if type == "wins":
+        user.wins += num
+        num = 1
+
+    elif type == "draws":
+        user.draws += num
+        num = 0.5
+
+    elif type == "losses":
+        user.losses += num
+        num = 0
+    
+    e = 1 / (1 + 10 * ((user2.rating - user.rating) / 400))
+    newRating = user.rating + 40 * ((num - e) * (1 + 0.5 * (0.5 - ((user.wins + user.draws) / (user.wins + user.draws + user.losses)))))
+    user.rating = newRating
+    db.session.commit()
 
 # Game validation and logic
 def validate_game(board):

@@ -3,7 +3,7 @@ import json
 from extensions import db
 from datetime import datetime
 from models import Game
-from utils import validate_game, determine_game_state, check_winner, game_to_dict
+from utils import validate_game, determine_game_state, check_winner, game_to_dict, save_game, update_rating
 
 game_bp = Blueprint('game', __name__, url_prefix='/api/v1/games')
 
@@ -20,7 +20,8 @@ def create_game():
             difficulty=data['difficulty'],
             board=data['board'],
             game_state=game_state,
-            players=data.get('players', [])
+            players=data.get('players', []),
+            isLocal=data["local"]
         )
         db.session.add(game)
         db.session.commit()
@@ -85,6 +86,7 @@ def update_game(uuid):
             for player in players:
                 if player['role'] == "X":
                     game.winnerId = player['user_id']
+
         elif check_winner(data['board'], "O"):
             game.game_state = 'endgame'
             for player in players:
@@ -93,6 +95,21 @@ def update_game(uuid):
         else:
             game.game_state = determine_game_state(data['board'])
         db.session.commit()
+        if game.isLocal:
+            save_game(game, players[0]["user_id"])
+        else:
+            for player in players:
+                save_game(game, player["user_id"])
+
+        if game.winnerId is not None and not game.isLocal:
+            print("UPDATE RATING")
+            if game.winnerId == players[0]['user_id']:
+                update_rating(players[1]['user_id'], players[0]['user_id'], "losses")
+                update_rating(players[0]['user_id'], players[1]['user_id'], "wins")
+            else:
+                update_rating(players[0]['user_id'], players[1]['user_id'], "losses")
+                update_rating(players[1]['user_id'], players[0]['user_id'], "wins")
+
         return jsonify(game_to_dict(game)), 200
     except KeyError as e:
         abort(400, description=f"Missing field: {str(e)}")

@@ -16,6 +16,7 @@ class Game(db.Model):
     started = db.Column(db.Boolean, default=False)
     winnerId = db.Column(db.Integer, nullable=True)
     code = db.Column(db.String(6), nullable=True, unique=True)
+    isLocal = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -35,6 +36,10 @@ class User(db.Model):
     email = db.Column(db.String(100), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=True)
     saved_games = db.Column(db.JSON, default={})
+    wins = db.Column(db.Integer, default=0)
+    draws = db.Column(db.Integer, default=0)
+    losses = db.Column(db.Integer, default=0)
+    rating = db.Column(db.Integer, default=0)
 
     def set_password(self, password):
         self.password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()

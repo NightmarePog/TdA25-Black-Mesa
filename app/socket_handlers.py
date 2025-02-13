@@ -66,7 +66,6 @@ def handle_join_game(data):
         emit('error', {'message': f"Error joining game: {str(e)}"}, room=request.sid)
 
 def handle_make_move(data):
-    print("sdfsdfsdf")
     game = Game.query.filter_by(uuid=data['game_uuid']).first()
     if not game:
         emit('error', {'message': 'Game not found.'}, room=request.sid)
