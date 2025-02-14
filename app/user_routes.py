@@ -127,6 +127,9 @@ def get_score(user_id):
 
 @user_bp.route('/get_users', methods=['GET'])
 def get_users():
-    users = User.query.all()
+    data = request.get_json()
+    min_id = data["min"]
+    max_id = data["max"]
+    users = User.query.filter(User.id.between(min_id, max_id)).all()
     users_list = [{"id": user.id, "username": user.username} for user in users]
     return jsonify(users_list)
