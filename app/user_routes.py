@@ -127,6 +127,12 @@ def get_score(user_id):
 
 @user_bp.route('/get_users', methods=['GET'])
 def get_users():
+    '''
+    {
+    "min": int,
+    "max": int
+    }
+    '''
     data = request.get_json()
     min_id = data["min"]
     max_id = data["max"]
