@@ -111,3 +111,22 @@ def get_saved_game(user_id, game_uuid):
         return jsonify({"error": "User not found"}), 404
     saved_games = json.loads(user.saved_games) if isinstance(user.saved_games, str) else user.saved_games
     return jsonify(saved_games.get(game_uuid, {}))
+
+@user_bp.route('/get_score/<user_id>')
+def get_score(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    user_stats = {
+        'wins': user.wins,
+        'draws': user.draws,
+        'losses': user.losses,
+        'rating': user.rating
+    }
+    return jsonify(user_stats)
+
+@user_bp.route('/get_users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    users_list = [{"id": user.id, "username": user.username} for user in users]
+    return jsonify(users_list)
