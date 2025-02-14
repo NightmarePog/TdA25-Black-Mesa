@@ -127,12 +127,6 @@ def delete_game(uuid):
     db.session.commit()
     return '', 204
 
-from flask import Blueprint, request, jsonify, abort
-import json
-from extensions import db
-from models import User
-
-
 @user_bp.route('/', methods=['POST'])
 def create_user():
     data = request.get_json()
