@@ -28,6 +28,10 @@ def login_page():
 def register_page():
     return render_template('register.html')
 
+@frontend_bp.route('/list')
+def users_list():
+    return render_template('users_list.html')
+
 @frontend_bp.route('/multiplayer-game/<uuid>')
 def game_page(uuid):
     game = Game.query.get(uuid)

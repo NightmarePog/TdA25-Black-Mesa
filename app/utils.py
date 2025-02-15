@@ -40,9 +40,9 @@ def update_rating(user_id, user2_id, type,num=None):
         user.losses += num
         num = 0
     
-    e = 1 / (1 + 10 * ((user2.rating - user.rating) / 400))
-    newRating = user.rating + 40 * ((num - e) * (1 + 0.5 * (0.5 - ((user.wins + user.draws) / (user.wins + user.draws + user.losses)))))
-    user.rating = newRating
+    e = 1 / (1 + 10 * ((user2.elo - user.elo) / 400))
+    newRating = user.elo + 40 * ((num - e) * (1 + 0.5 * (0.5 - ((user.wins + user.draws) / (user.wins + user.draws + user.losses)))))
+    user.elo = newRating
     db.session.commit()
 
 # Game validation and logic
@@ -89,6 +89,19 @@ def game_to_dict(game):
         "code": game.code,
         "winnerId": game.winnerId,
         "players": game.players
+    }
+
+def user_to_dict(user):
+    return {
+        "uuid": user.uuid,
+        "createdAt": user.created_at.isoformat(),
+        "loginBy": user.login_by,
+        "username": user.username,
+        "email": user.email,
+        "wins": user.wins,
+        "draws": user.draws,
+        "losses": user.losses,
+        "elo": user.elo
     }
 
 def save_game(game, player_id):

@@ -5,46 +5,39 @@ from uuid import uuid4
 import hashlib
 import json
 from datetime import datetime
+import secrets
+from utils import user_to_dict
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/v1/users')
 
-@user_bp.route('/register', methods=['POST'])
+@user_bp.route('/', methods=['POST'])
 def register_user():
     data = request.get_json()
-    try:
-        if data.get('loginBy') in ["0", 0]:
-            timestamp = int(datetime.now().timestamp())
-            data['username'] = f"{data['username']}_{timestamp}"
-            if User.query.filter_by(username=data['username']).first():
-                abort(400, description="Username already exists")
-            player = User(
-                username=data['username'],
-                login_by=data['loginBy'],
-                email=str(uuid4()),
-                password_hash="guest"
-            )
-            db.session.add(player)
-            db.session.commit()
-            return jsonify({"message": "User registered successfully", "id": player.id, "username": player.username}), 201
-        else:
-            if not data.get('username') or not data.get('email'):
-                abort(400, description="Username and email are required")
-            if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-                abort(400, description="Username or email already exists")
-            player = User(
-                username=data['username'],
-                email=data['email'],
-                login_by=data['loginBy']
-            )
-            if data.get('password'):
-                player.set_password(data['password'])
-            db.session.add(player)
-            db.session.commit()
-            return jsonify({"message": "User registered successfully", "id": player.id, "username": player.username}), 201
-    except KeyError as e:
-        abort(400, description=f"Missing field: {str(e)}")
-    except Exception as e:
-        abort(422, description=str(e))
+    mes, cd = User.register(data)
+    if cd == 201:
+        token = User.create_token(mes['id'])
+        # Vytvoření odpovědi a nastavení cookie
+        response = jsonify(mes)
+
+        # Nastavení bezpečného cookie
+        response.set_cookie(
+            'auth_token',
+            value=token,
+            httponly=True,         # Blokuje přístup přes JavaScript
+            secure=True,            # Posílá pouze přes HTTPS
+            samesite='Strict',     # Ochrana proti CSRF
+        )
+        
+        return response, cd
+    
+    elif cd == 400 or cd == 422:
+        return abort(cd, description=mes)
+    
+@user_bp.route('/', methods=['GET'])
+def get_all_users():
+    query = User.query
+    users = query.all()
+    return jsonify([user_to_dict(user) for user in users]), 200
 
 @user_bp.route('/login', methods=['POST'])
 def login_user():
@@ -55,34 +48,63 @@ def login_user():
             abort(404, description="User not found")
         if player.login_by == "1" and not player.check_password(data['password']):
             abort(400, description="Invalid credentials")
-        return jsonify({"message": "Login successful", "id": player.id, "username": player.username}), 200
+
+        # Generování tokenu
+        new_token = secrets.token_urlsafe(64)
+        
+        # Aktualizace databáze
+        if not player.tokens:
+            player.tokens = []
+        player.tokens.append(new_token)
+        db.session.commit()
+
+        # Vytvoření odpovědi a nastavení cookie
+        response = jsonify({
+            "message": "Login successful",
+            "id": player.uuid,
+            "username": player.username
+        })
+        
+        # Nastavení bezpečného cookie
+        response.set_cookie(
+            'auth_token',
+            value=new_token,
+            httponly=True,         # Blokuje přístup přes JavaScript
+            secure=True,            # Posílá pouze přes HTTPS
+            samesite='Strict',     # Ochrana proti CSRF
+        )
+        
+        return response, 200
+
     except KeyError as e:
+        db.session.rollback()
         abort(400, description=f"Missing field: {str(e)}")
     except Exception as e:
+        db.session.rollback()
         abort(422, description=str(e))
 
-@user_bp.route('/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    user = User.query.get(user_id)
+@user_bp.route('/<uuid>', methods=['DELETE'])
+def delete_user(uuid):
+    user = User.query.get(uuid)
     if not user:
         return jsonify({'message': 'User not found'}), 404
     db.session.delete(user)
     db.session.commit()
     return jsonify({'message': 'User deleted'}), 200
 
-@user_bp.route('/<id>', methods=['GET'])
-def get_player(id):
-    player = User.query.get(id)
+@user_bp.route('/<uuid>', methods=['GET'])
+def get_player(uuid):
+    player = User.query.get(uuid)
     if not player:
         abort(404)
     return jsonify({
-        "id": player.id,
+        "id": player.uuid,
         "username": player.username,
         "email": player.email,
         "loginBy": player.login_by
     }), 200
 
-@user_bp.route('/saved_games/<int:user_id>', methods=['GET'])
+@user_bp.route('/saved_games/<string:user_id>', methods=['GET'])
 def get_saved_games(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -90,9 +112,9 @@ def get_saved_games(user_id):
     saved_games = json.loads(user.saved_games) if isinstance(user.saved_games, str) else user.saved_games
     return jsonify([{"uuid": k, **v} for k, v in saved_games.items()])
 
-@user_bp.route('/saved_games/<int:user_id>/<game_uuid>', methods=['DELETE'])
-def delete_saved_game(user_id, game_uuid):
-    user = User.query.get(user_id)
+@user_bp.route('/saved_games/<user_uuid>/<game_uuid>', methods=['DELETE'])
+def delete_saved_game(user_uuid, game_uuid):
+    user = User.query.get(user_uuid)
     if not user:
         return jsonify({"error": "User not found"}), 404
     saved_games = json.loads(user.saved_games)
@@ -104,17 +126,17 @@ def delete_saved_game(user_id, game_uuid):
     else:
         return jsonify({"error": "Game not found"}), 404
 
-@user_bp.route('/saved_games/<int:user_id>/<game_uuid>', methods=['GET'])
-def get_saved_game(user_id, game_uuid):
-    user = User.query.get(user_id)
+@user_bp.route('/saved_games/<user_uuid>/<game_uuid>', methods=['GET'])
+def get_saved_game(user_uuid, game_uuid):
+    user = User.query.get(user_uuid)
     if not user:
         return jsonify({"error": "User not found"}), 404
     saved_games = json.loads(user.saved_games) if isinstance(user.saved_games, str) else user.saved_games
     return jsonify(saved_games.get(game_uuid, {}))
 
-@user_bp.route('/get_score/<user_id>')
-def get_score(user_id):
-    user = User.query.get(user_id)
+@user_bp.route('/get_score/<user_uuid>', methods=['GET'])
+def get_score(user_uuid):
+    user = User.query.get(user_uuid)
     if not user:
         return jsonify({"error": "User not found"}), 404
     user_stats = {
@@ -125,17 +147,116 @@ def get_score(user_id):
     }
     return jsonify(user_stats)
 
-@user_bp.route('/get_users', methods=['GET'])
+@user_bp.route('/get_users', methods=['POST'])
 def get_users():
     '''
+    Endpoint pro získání uživatelů v zadaném rozsahu.
+    Očekává JSON ve formátu:
     {
-    "min": int,
-    "max": int
+        "min": int (výchozí 0),
+        "max": int (výchozí poslední index)
     }
     '''
     data = request.get_json()
-    min_id = data["min"]
-    max_id = data["max"]
-    users = User.query.filter(User.id.between(min_id, max_id)).all()
-    users_list = [{"id": user.id, "username": user.username} for user in users]
-    return jsonify(users_list)
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    try:
+        # Získání základních parametrů
+        min_users = int(data.get("min", 0))
+        max_users_provided = "max" in data
+        max_users = int(data["max"]) if max_users_provided else None
+    except ValueError:
+        return jsonify({"error": "min and max must be integers"}), 400
+
+    # Získání celkového počtu uživatelů
+    total_users = User.query.count()
+    
+    # Automatické nastavení max pro prázdnou databázi
+    if total_users == 0:
+        return jsonify({"users": [], "count": 0}), 200
+
+    # Nastavení výchozí hodnoty max
+    if not max_users_provided:
+        max_users = total_users - 1
+
+    # Validace vstupů
+    if min_users < 0:
+        return jsonify({"error": "min cannot be negative"}), 400
+    
+    if max_users < min_users:
+        return jsonify({"error": "max must be >= min"}), 400
+
+    # Korekce horní hranice
+    max_users = min(max_users, total_users - 1)
+
+    # Výpočet limitu pro dotaz
+    limit = max_users - min_users + 1
+
+    # Získání uživatelů s řazením podle data vytvoření
+    users = User.query.order_by(User.created_at.asc()).offset(min_users).limit(limit).all()
+
+    # Serializace výsledků (bez citlivých údajů)
+    users_data = [{
+        "uuid": user.uuid,
+        "username": user.username,
+        "email": user.email,
+        "created_at": user.created_at.isoformat(),
+        "wins": user.wins,
+        "draws": user.draws,
+        "losses": user.losses,
+        "elo": user.elo,
+        "login_by": user.login_by
+    } for user in users]
+
+    return jsonify({
+        "users": users_data,
+        "count": len(users_data),
+        "total": total_users
+    })
+
+
+
+@user_bp.route('/search', methods=['POST'])
+def search_users():
+    """
+    Endpoint pro vyhledávání uživatelů dle dotazu.
+    Očekává JSON ve formátu:
+    {
+        "query": "část jména"
+    }
+    """
+    data = request.get_json()
+    if not data or 'query' not in data:
+        return jsonify({"error": "No search query provided"}), 400
+
+    query_str = data['query']
+    # Vyhledávání s využitím case-insensitive částečné shody
+    users = User.query.filter(User.username.ilike(f"%{query_str}%")) \
+                      .order_by(User.created_at.asc()) \
+                      .all()
+    
+    users_by_uuid = User.query.filter(User.uuid.ilike(f"%{query_str}%")) \
+                      .order_by(User.created_at.asc()) \
+                      .all()
+    
+    for user in users_by_uuid:
+        if user not in users:
+            users.append(user)
+
+    users_data = [{
+        "uuid": user.uuid,
+        "username": user.username,
+        "email": user.email,
+        "created_at": user.created_at.isoformat(),
+        "wins": user.wins,
+        "draws": user.draws,
+        "losses": user.losses,
+        "elo": user.elo,
+        "login_by": user.login_by
+    } for user in users]
+
+    return jsonify({
+        "users": users_data,
+        "count": len(users_data)
+    }), 200

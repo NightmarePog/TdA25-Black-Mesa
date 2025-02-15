@@ -31,6 +31,20 @@ def create_app():
     # Create database tables
     with app.app_context():
         db.create_all()
+        a, b = User.register({
+            'loginBy': 1,
+            'username': 'admin',
+            'email': "admin@admin.com",
+            'password': "admin"})
+        
+        for i in range(61):
+            User.register({
+                'loginBy': 1,
+                'username': f'user{i}',
+                'email': f'asd{i}@email.com',
+                "password": "1234"})
+                
+        print(a, b)
         print("Database initialized")
 
     return app

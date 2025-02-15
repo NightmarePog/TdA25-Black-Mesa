@@ -7,7 +7,6 @@ from models import User
 from utils import validate_game, determine_game_state, check_winner, game_to_dict, save_game, update_rating
 
 game_bp = Blueprint('game', __name__, url_prefix='/api/v1/games')
-user_bp = Blueprint('user', __name__, url_prefix='/api/v1/users')
 
 @game_bp.route('/', methods=['POST'])
 def create_game():
@@ -124,62 +123,5 @@ def delete_game(uuid):
     if not game:
         abort(404)
     db.session.delete(game)
-    db.session.commit()
-    return '', 204
-
-@user_bp.route('/', methods=['POST'])
-def create_user():
-    data = request.get_json()
-    try:
-        user = User(
-            username=data['username'],
-            email=data['email'],
-            password=data['password'],
-            rating=data.get('rating', 1000)
-        )
-        db.session.add(user)
-        db.session.commit()
-        return jsonify(user.to_dict()), 201
-    except KeyError as e:
-        abort(400, description=f"Missing field: {str(e)}")
-    except Exception as e:
-        abort(422, description=str(e))
-
-@user_bp.route('/', methods=['GET'])
-def get_all_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users]), 200
-
-@user_bp.route('/<uuid>', methods=['GET'])
-def get_user(uuid):
-    user = User.query.get(uuid)
-    if not user:
-        abort(404)
-    return jsonify(user.to_dict()), 200
-
-@user_bp.route('/<uuid>', methods=['PUT'])
-def edit_user(uuid):
-    user = User.query.get(uuid)
-    if not user:
-        abort(404)
-    data = request.get_json()
-    try:
-        if 'username' in data:
-            user.username = data['username']
-        if 'email' in data:
-            user.email = data['email']
-        if 'password' in data:
-            user.password = data['password']
-        db.session.commit()
-        return jsonify(user.to_dict()), 200
-    except Exception as e:
-        abort(422, description=str(e))
-
-@user_bp.route('/<uuid>', methods=['DELETE'])
-def delete_user(uuid):
-    user = User.query.get(uuid)
-    if not user:
-        abort(404)
-    db.session.delete(user)
     db.session.commit()
     return '', 204

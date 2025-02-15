@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Základní styly */
+    body {
+      font-family: 'Dosis', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #F6F6F6;
+      color: #1A1A1A;
+    }
+
+    .header {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nickname-box {
+      display: flex;
+      align-items: center;
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nickname-box:hover {
+      background-color: #080808;
+    }
+
+    .menu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #FFFFFF;
+      color: #1A1A1A;
+      border: 1px solid #CCC;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .nickname-box:hover .menu {
+      display: block;
+    }
+
+    .menu button {
+      background-color: #E31837;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .menu button:hover {
+      background-color: #AB2E58;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 70px;
+    }
+
+    .search-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .search-container input {
+      padding: 8px;
+      font-size: 14px;
+      width: 300px;
+      border: 1px solid #CCC;
+      border-radius: 5px;
+    }
+
+    .user-list {
+      margin: 20px auto;
+      padding: 15px;
+      background-color: #FFFFFF;
+      border: 1px solid #CCC;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      max-width: 800px;
+    }
+
+    .user-list table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .user-list th,
+    .user-list td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #DDD;
+    }
+
+    .user-list th {
+      background-color: #F8F9FA;
+      font-weight: 600;
+    }
+
+    .load-more {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .load-more button {
+      background-color: #395A9A;
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 10px;
+    }
+
+    .load-more button:hover {
+      background-color: #724479;
+    }
+
+    @media screen and (max-width: 600px) {
+      .user-list {
+        margin: 10px;
+        padding: 10px;
+      }
+      .header {
+        top: 10px;
+        right: 10px;
+      }
+      .search-container input {
+        width: 80%;
+      }
+    }
+
+    /* Styly pro akční tlačítka */
+    .profile-btn {
+      background-color: #395A9A;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 0 5px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .profile-btn:hover {
+      background-color: #724479;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="nickname-box">
+      <span id="nickname">Loading...</span>
+      <div class="menu">
+        <button id="logout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <h1>User List</h1>
+
+  <!-- Vyhledávací pole -->
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Hledat uživatele (username nebo UUID)...">
+    <button id="searchBtn" class="profile-btn">Vyhledat</button>
+    <button id="clearSearch" class="profile-btn">Zobrazit všechny</button>
+  </div>
+
+  <div class="user-list">
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </div>
+
+  <div class="load-more">
+    <button id="prevPage">Předchozí</button>
+    <button id="nextPage">Další</button>
+  </div>
+
+  <script>
+    let currentMin = 1;
+    let currentMax = 50;
+    const itemsPerPage = 50;
+    let isSearching = false; // Příznak, zda právě probíhá vyhledávání
+
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const isGuest = localStorage.getItem('isGuest') === 'true';
+
+    document.getElementById('nickname').textContent = username || 'Unknown Player';
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersBody');
+      tbody.innerHTML = '';
+      users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.uuid}</td>
+          <td>${user.username}</td>
+          <td>
+            <button onclick="viewProfile('${user.uuid}')" class="profile-btn">Vidět profil</button>
+            <button onclick="deleteUser('${user.uuid}')" class="profile-btn">Smazat</button>
+            <button onclick="banUser('${user.uuid}')" class="profile-btn">Zabanovat</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function loadUsers(min, max) {
+      isSearching = false;
+      fetch('/api/v1/users/get_users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          min: min,
+          max: max
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        renderUsers(data.users);
+      })
+      .catch(error => {
+        console.error('Error loading users:', error);
+        alert('Failed to load users');
+      });
+    }
+
+    function searchUsers(query) {
+      isSearching = true;
+      fetch('/api/v1/users/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        renderUsers(data.users);
+      })
+      .catch(error => {
+        console.error('Error searching users:', error);
+        alert('Failed to search users');
+      });
+    }
+
+    function viewProfile(userId) {
+      // Implementace navigace na profil uživatele
+      alert('Zobrazuji profil uživatele s ID: ' + userId);
+    }
+
+    function deleteUser(userId) {
+      // Implementace smazání uživatele
+      alert('Smazat uživatele s ID: ' + userId);
+    }
+
+    function banUser(userId) {
+      // Implementace banování uživatele
+      alert('Zabanovat uživatele s ID: ' + userId);
+    }
+
+    // Ovládání stránkování
+    document.getElementById('nextPage').addEventListener('click', () => {
+      if (!isSearching) {
+        currentMin += itemsPerPage;
+        currentMax += itemsPerPage;
+        loadUsers(currentMin, currentMax);
+      }
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+      if (!isSearching && currentMin > 1) {
+        currentMin -= itemsPerPage;
+        currentMax -= itemsPerPage;
+        loadUsers(currentMin, currentMax);
+      }
+    });
+
+    // Vyhledávání
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const query = document.getElementById('searchInput').value.trim();
+      if (query) {
+        searchUsers(query);
+      }
+    });
+
+    // Tlačítko pro zrušení vyhledávání a načtení všech uživatelů
+    document.getElementById('clearSearch').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      currentMin = 1;
+      currentMax = 50;
+      loadUsers(currentMin, currentMax);
+    });
+
+    // Funkce pro odhlášení
+    document.getElementById('logout').addEventListener('click', () => {
+      if (isGuest) {
+        fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+      }
+      localStorage.clear();
+      window.location.href = '/login';
+    });
+
+    // První načtení uživatelů
+    loadUsers(currentMin, currentMax);
+  </script>
+</body>
+</html>
