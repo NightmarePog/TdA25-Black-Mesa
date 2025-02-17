@@ -319,9 +319,10 @@
                 console.log(document.getElementById('localGameDifficulty').value)
                 const localGameData = {
                     name: player1 + ' vs ' + player2,
-                    players: [{"user_id": 1, "username": player1, "role": "X"}, {"user_id": 2, "username": player2, "role": "O"}],
+                    players: [{"user_id": userId, "username": player1, "role": "X"}, {"user_id": toString(userId)+"_2", "username": player2, "role": "O"}],
                     difficulty: document.getElementById('localGameDifficulty').value,
-                    board: Array(15).fill(null).map(() => Array(15).fill(""))
+                    board: Array(15).fill(null).map(() => Array(15).fill("")),
+                    local: true
                 };
                 let uuid = "";
 
@@ -387,7 +388,8 @@
             const gameData = {
                 name: gameName,
                 difficulty: gameDifficulty,
-                board: Array(15).fill(null).map(() => Array(15).fill(""))
+                board: Array(15).fill(null).map(() => Array(15).fill("")),
+                local: false
             };
 
             fetch('/api/v1/games', {
@@ -415,7 +417,7 @@
         });
 
            // Načíst seznam her
-            fetch(`/api/v1/saved_games/${userId}`, {
+            fetch(`/api/v1/users/saved_games/${userId}`, {
                 method: 'GET'
             })
             .then(response => response.json())
@@ -511,7 +513,7 @@
         // Funkce pro smazání hry
         function deleteGame(gameUuid) {
             if (confirm('Are you sure you want to delete this game?')) {
-                fetch(`/api/v1/saved_games/${userId}/${gameUuid}`, {
+                fetch(`/api/v1/users/saved_games/${userId}/${gameUuid}`, {
                     method: 'DELETE'
                 })
                 .then(response => {
@@ -536,7 +538,7 @@
                 return;
             }
 
-            fetch(`/api/v1/get_game_data_by_code/${gameCode}`, {
+            fetch(`/api/v1/games/get_game_data_by_code/${gameCode}`, {
                 method: 'GET'
             })
                 .then(response => {

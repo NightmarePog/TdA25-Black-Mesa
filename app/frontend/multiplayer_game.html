@@ -245,7 +245,6 @@
             const gameStatus = document.getElementById('gameStatus');
             const turn = document.getElementById('turn');
             const gameState = document.getElementById('gameState');
-
             gameStarted = data.started;
             if (data.turn !== undefined) {
                 currentTurn = data.turn;
@@ -302,7 +301,8 @@
                     playerIndex = value;
                 }
             }
-
+            console.log("GAME-STATUS");
+            console.log(data);
             updatePlayerList();
             drawBoard();
         });
