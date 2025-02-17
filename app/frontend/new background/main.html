@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page with Floating Bar</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Bez okrajů a přetečení */
+        }
+
+        .floating-bar {
+            position: fixed; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
+            top: 20px; /* Vzdálenost od horního okraje */
+            left: 30px; /* Vzdálenost od levého okraje */
+            right: 30px; /* Vzdálenost od pravého okraje */
+            height: 60px; /* Dvakrát vyšší než původní */
+            line-height: 60px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
+            background-color: #000000; /* Černá barva */
+            color: #FFFFFF; /* Bílé písmo */
+            text-align: center;
+            padding: 0 10px; /* Vodorovné odsazení */
+            font-family: Arial, sans-serif;
+            font-size: 15px; /* Nastavení velikosti písma na 15px */
+            border-radius: 15px; /* Zakulacené rohy */
+            z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
+            box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
+        }
+
+        .logo {
+            position: absolute;
+            top: 50%; /* Změna vertikálního umístění loga */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centrovat logo horizontálně i vertikálně */
+            max-width: 90%;
+            max-height: 80%;
+            width: auto;
+            height: auto;
+            z-index: 0; /* Logo bude za vlnami */
+        }
+
+        iframe {
+            display: block;
+            border: none;
+            width: 100%;
+            height: 100vh; /* Výška iframe zabírá celou viditelnou oblast */
+            z-index: -1; /* Iframe bude za logem */
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-bar">
+        Plovoucí lišta pro tlačítka
+    </div>
+    <img src="picture/logo.svg" class="logo" alt="Logo">
+    <iframe src="background.html"></iframe>
+</body>
+</html>
