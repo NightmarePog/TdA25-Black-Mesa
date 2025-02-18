@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Wave Pattern</title>
+    <style>
+        body {
+            background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="waveCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        const waveHeights = [30, 25, 20];
+        const waveSpeeds = [0.3, 0.2, 0.5];
+        let offset = [0, 0, 0];
+        let lastTime = performance.now();
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function drawWaves(timestamp) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate delta time
+            let deltaTime = (timestamp - lastTime) / 1000; // in seconds
+            lastTime = timestamp;
+
+            // Gradient background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, canvas.height * 0.9, canvas.width, canvas.height * 0.3); // Bílá barva dole
+
+            // Draw waves
+            for (let i = 0; i < waveHeights.length; i++) {
+                if (i === 1) {
+                    offset[i] -= waveSpeeds[i] * deltaTime * 100; // Reverse direction for the middle wave
+                } else {
+                    offset[i] += waveSpeeds[i] * deltaTime * 100;
+                }
+                drawWave(i);
+                drawWaveOutline(i); // Přidáme čáru pro každou vlnu
+            }
+
+            requestAnimationFrame(drawWaves);
+        }
+
+        function drawWave(index) {
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.3); // Posunutí vlny o 1/3 níže
+
+            const waveHeight = (2 / 5) * canvas.height - 139;
+            const amplitude = waveHeights[index];
+            const frequency = 0.02;
+
+            for (let x = 0; x <= canvas.width; x++) {
+                const y = canvas.height * 0.8 + amplitude * Math.sin(frequency * (x + offset[index]));
+                ctx.lineTo(x, y);
+            }
+
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawWaveOutline(index) {
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.3);
+
+            const waveHeight = (2 / 5) * canvas.height - 139;
+            const amplitude = waveHeights[index];
+            const frequency = 0.02;
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x <= canvas.width; x++) {
+                const y = canvas.height * 0.8 + amplitude * Math.sin(frequency * (x + offset[index]));
+                ctx.lineTo(x, y);
+            }
+
+            ctx.stroke();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        requestAnimationFrame(drawWaves);
+    </script>
+</body>
+</html>
