@@ -12,16 +12,14 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f4f4f9;
         }
         .register-container {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.8); /* Polotransparentní pozadí */
             padding: 20px;
             border-radius: 40px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 25vw;
             height: 55vh;
-            position: relative;
         }
         h2 {
             text-align: center;
@@ -53,19 +51,30 @@
             color: #555;
         }
         .password-requirements li {
-            padding: 5px 0;
-            transition: all 0.5s ease;
+            margin: 5px 0;
+            transition: margin 0.5s ease; /* Animace pro margin */
         }
+        .valid {
+            color: green;
+            animation: hideToUp 1s forwards; /* Plynulý přechod pro zobrazení */
+        }
+        .invalid {
+            color: red;
+            animation: showFromRight 0.5s forwards; /* Rychlý návrat podmínky */
+        }
+
         @keyframes hideToUp {
             from {
                 transform: translateY(0);
                 opacity: 1;
             }
             to {
-                transform: translateY(-100%);
+                transform: translateY(-100%); /* Posune nahoru */
                 opacity: 0;
+                margin-top: -15px; /* Zmenší mezery mezi podmínkami */
             }
         }
+
         @keyframes showFromRight {
             from {
                 opacity: 0;
@@ -74,32 +83,13 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+                margin-top: 5px; /* Vytvoří mezery mezi podmínkami */
             }
-        }
-        .valid {
-            color: green;
-            animation: hideToUp 1s forwards;
-        }
-        .invalid {
-            color: red;
-            animation: showFromRight 0.5s forwards;
-        }
-        .password-requirements li {
-            margin: 5px 0;
-        }
-        #togglePassword {
-            position: absolute;
-            right: 10px;
-            top: 35px;
-            background: none;
-            border: none;
-            color: #AB2E58;
-            cursor: pointer;
-            font-size: 14px;
         }
     </style>
 </head>
 <body>
+    <div id="background-container"></div> <!-- Místo pro pozadí -->
     <div class="register-container">
         <h2>Register</h2>
         <form id="registerForm">
@@ -107,7 +97,6 @@
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Register</button>
-            <button type="button" id="togglePassword">Zobrazit</button>
         </form>
         <ul class="password-requirements">
             <li id="length" class="invalid">Minimálně 8 znaků</li>
@@ -119,6 +108,15 @@
     </div>
 
     <script>
+        // Načíst obsah z background.html
+        fetch('static/background1.html')
+        .then(response => response.text())
+        .then(data => { 
+            // Vložit načtený obsah do pozadí
+            document.getElementById('background-container').innerHTML = data;
+        })
+        .catch(error => console.error('Error loading background:', error));
+
         // Funkce pro validaci hesla
         function validatePassword(password) {
             const minLength = /.{8,}/; // Minimálně 8 znaků
@@ -150,23 +148,11 @@
             return requirements;
         }
 
-        // Tlačítko pro zobrazení/skrytí hesla
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const passwordField = document.getElementById('password');
-            const passwordType = passwordField.type === 'password' ? 'text' : 'password';
-            passwordField.type = passwordType;
-
-            // Změna textu tlačítka podle stavu
-            this.textContent = passwordType === 'password' ? 'Zobrazit' : 'Skrýt';
-        });
-
-        // Validace při zadávání hesla
         document.getElementById('password').addEventListener('input', function() {
             const password = this.value;
             validatePassword(password);
         });
 
-        // Odeslání formuláře
         document.getElementById('registerForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
