@@ -25,7 +25,7 @@ class Game(db.Model):
 
     def generate_unique_code(self):
         while True:
-            code = str(uuid4().hex)[:6].lower()
+            code = str(uuid4().int)[:6].lower()
             existing_game = Game.query.filter_by(code=code).first()
             if not existing_game:
                 return code
