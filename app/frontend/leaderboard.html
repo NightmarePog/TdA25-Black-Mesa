@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .leaderboard-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #AB2E58;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="leaderboard-container">
+        <h2>Leaderboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Username</th>
+                    <th>ELO</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <tr><td colspan="3">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch('/api/v1/users/get_users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ min: 0, max: 50 })
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById("leaderboard-body").innerHTML = `<tr><td colspan="3">${data.error}</td></tr>`;
+                    return;
+                }
+                
+                let users = data.users.sort((a, b) => b.elo - a.elo); // Seřazení podle ELO sestupně
+                let rows = users.map((user, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${user.username}</td>
+                        <td>${user.elo}</td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById("leaderboard-body").innerHTML = rows;
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+                document.getElementById("leaderboard-body").innerHTML = `<tr><td colspan="3">Failed to load data</td></tr>`;
+            }
+        }
+        
+        fetchLeaderboard();
+    </script>
+</body>
+</html>

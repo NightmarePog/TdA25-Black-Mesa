@@ -46,3 +46,7 @@ def user_page(uuid):
     if not user_info:
         abort(404)
     return render_template('user_page.html', user_info=user_info)
+
+@frontend_bp.route('/leaderboard')
+def leaderboard():
+    return render_template('leaderboard.html')
