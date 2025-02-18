@@ -20,7 +20,8 @@
             border-radius: 40px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 25vw;
-            height:45vh;
+            height: 55vh;
+            position: relative;
         }
         h2 {
             text-align: center;
@@ -46,6 +47,56 @@
         button:hover {
             background-color: #724479;
         }
+        .password-requirements {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        .password-requirements li {
+            padding: 5px 0;
+            transition: all 0.5s ease;
+        }
+        @keyframes hideToUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+        @keyframes showFromRight {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .valid {
+            color: green;
+            animation: hideToUp 1s forwards;
+        }
+        .invalid {
+            color: red;
+            animation: showFromRight 0.5s forwards;
+        }
+        .password-requirements li {
+            margin: 5px 0;
+        }
+        #togglePassword {
+            position: absolute;
+            right: 10px;
+            top: 35px;
+            background: none;
+            border: none;
+            color: #AB2E58;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -56,63 +107,79 @@
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Register</button>
+            <button type="button" id="togglePassword">Zobrazit</button>
         </form>
+        <ul class="password-requirements">
+            <li id="length" class="invalid">Minimálně 8 znaků</li>
+            <li id="special" class="invalid">Alespoň jeden speciální znak</li>
+            <li id="number" class="invalid">Alespoň jedna číslice</li>
+            <li id="lowercase" class="invalid">Alespoň jedno malé písmeno</li>
+            <li id="uppercase" class="invalid">Alespoň jedno velké písmeno</li>
+        </ul>
     </div>
 
     <script>
+        // Funkce pro validaci hesla
+        function validatePassword(password) {
+            const minLength = /.{8,}/; // Minimálně 8 znaků
+            const specialChar = /[!@#$%^&*(),.?":{}|<>]/; // Speciální znak
+            const number = /\d/; // Číslice
+            const lowerCase = /[a-z]/; // Malé písmeno
+            const upperCase = /[A-Z]/; // Velké písmeno
 
-                // Načíst obsah z background.html 
-                fetch('static/background.html') 
-            .then(response => response.text()) 
-            .then(data => { 
-                // Vložit načtený obsah přímo do těla (body) 
-                document.body.insertAdjacentHTML('afterbegin', data); 
-            }) 
-            .catch(error => console.error('Error loading HTML:', error));
-            
+            const requirements = {
+                length: minLength.test(password),
+                special: specialChar.test(password),
+                number: number.test(password),
+                lowercase: lowerCase.test(password),
+                uppercase: upperCase.test(password)
+            };
 
-                // Load the content of index.html
-                fetch('static/background.html')
-            .then(response => response.text())
-            .then(data => {
-                // Create a container element for the loaded content
-                const container = document.createElement('div');
-                container.innerHTML = data;
+            // Aktualizace stavu požadavků na heslo
+            Object.keys(requirements).forEach(key => {
+                const element = document.getElementById(key);
+                if (requirements[key]) {
+                    element.classList.remove('invalid');
+                    element.classList.add('valid');
+                } else {
+                    element.classList.remove('valid');
+                    element.classList.add('invalid');
+                }
+            });
 
-                // Append the styles
-                const styles = container.querySelectorAll('style');
-                styles.forEach(style => {
-                    const newStyle = document.createElement('style');
-                    newStyle.textContent = style.textContent;
-                    document.head.appendChild(newStyle);
-                });
-
-                // Append the scripts separately to ensure they execute
-                const scripts = container.querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = script.textContent;
-                    document.body.appendChild(newScript);
-                });
-
-                // Append the container to the dynamic content div
-                document.getElementById('dynamic-content').appendChild(container);
-            })
-            .catch(error => console.error('Error loading HTML:', error));
-
-            
-        const userIdStorage = localStorage.getItem('userId');
-            
-        if (userIdStorage) {
-            window.location.href = '/menu';
+            return requirements;
         }
-        
+
+        // Tlačítko pro zobrazení/skrytí hesla
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('password');
+            const passwordType = passwordField.type === 'password' ? 'text' : 'password';
+            passwordField.type = passwordType;
+
+            // Změna textu tlačítka podle stavu
+            this.textContent = passwordType === 'password' ? 'Zobrazit' : 'Skrýt';
+        });
+
+        // Validace při zadávání hesla
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            validatePassword(password);
+        });
+
+        // Odeslání formuláře
         document.getElementById('registerForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+
+            // Validace hesla
+            const requirements = validatePassword(password);
+            if (!Object.values(requirements).every(Boolean)) {
+                alert('Heslo nesplňuje všechny požadavky!');
+                return;
+            }
 
             fetch('/api/v1/users', {
                 method: 'POST',
@@ -128,10 +195,10 @@
                     localStorage.setItem('username', data.username);
                     window.location.href = '/menu';
                 } else {
-                    alert(data.message || 'Registration failed');
+                    alert(data.message || 'Registrace selhala');
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => console.error('Chyba:', error));
         });
     </script>
 </body>
