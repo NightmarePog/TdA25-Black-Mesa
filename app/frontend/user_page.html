@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body { font-family: 'Dosis', sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        h1 { text-align: center; }
+        .info { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Profile</h1>
+        <p class="info"><strong>Username:</strong> {{ user_info.username }}</p>
+        <p class="info"><strong>Wins:</strong> {{ user_info.wins }}</p>
+        <p class="info"><strong>Draws:</strong> {{ user_info.draws }}</p>
+        <p class="info"><strong>Looses:</strong> {{ user_info.looses }}</p>
+        <p class="info"><strong>ELO Rating:</strong> {{ user_info.elo }}</p>
+        <p class="info"><strong>Account Created:</strong> {{ user_info.created_at }}</p>
+    </div>
+</body>
+</html>

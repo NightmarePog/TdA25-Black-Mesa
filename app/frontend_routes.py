@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, abort
 from models import Game
+from models import User
 from utils import game_to_dict
 
 frontend_bp = Blueprint('frontend', __name__)
@@ -38,3 +39,14 @@ def game_page(uuid):
     if not game:
         abort(404)
     return render_template('multiplayer_game.html', game=game_to_dict(game))
+
+@frontend_bp.route('/user/<uuid>')
+def user_page(uuid):
+    user_info = User.query.get(uuid)
+    if not user_info:
+        abort(404)
+    return render_template('user_page.html', user_info=user_info)
+
+@frontend_bp.route('/leaderboard')
+def leaderboard():
+    return render_template('leaderboard.html')

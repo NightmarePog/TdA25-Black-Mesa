@@ -197,17 +197,7 @@ def get_users():
     users = User.query.order_by(User.created_at.asc()).offset(min_users).limit(limit).all()
 
     # Serializace výsledků (bez citlivých údajů)
-    users_data = [{
-        "uuid": user.uuid,
-        "username": user.username,
-        "email": user.email,
-        "created_at": user.created_at.isoformat(),
-        "wins": user.wins,
-        "draws": user.draws,
-        "losses": user.losses,
-        "elo": user.elo,
-        "login_by": user.login_by
-    } for user in users]
+    users_data = [user_to_dict(user) for user in users]
 
     return jsonify({
         "users": users_data,
@@ -244,17 +234,7 @@ def search_users():
         if user not in users:
             users.append(user)
 
-    users_data = [{
-        "uuid": user.uuid,
-        "username": user.username,
-        "email": user.email,
-        "created_at": user.created_at.isoformat(),
-        "wins": user.wins,
-        "draws": user.draws,
-        "losses": user.losses,
-        "elo": user.elo,
-        "login_by": user.login_by
-    } for user in users]
+    users_data = [user_to_dict(user) for user in users]
 
     return jsonify({
         "users": users_data,
