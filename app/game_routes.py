@@ -125,3 +125,14 @@ def delete_game(uuid):
     db.session.delete(game)
     db.session.commit()
     return '', 204
+
+@game_bp.route('/<uuid>/surrender', methods=['PUT'])
+def surrender(uuid):
+    game = Game.query.get(uuid)
+    if not game:
+        abort(404)
+        game.game_state = "draw"
+        db.session.commit()
+        players = json.loads(game.players) if isinstance(game.players, str) else game.players
+        update_rating(players[1]['user_id'], players[0]['user_id'], "draws")
+        update_rating(players[0]['user_id'], players[1]['user_id'], "draws")

@@ -1,7 +1,7 @@
 from extensions import db
 from models import Game, User
 from datetime import datetime
-from flask import jsonify, abort
+from flask import jsonify, abort, redirect, url_for, request, render_template
 import json
 import requests
 
@@ -9,16 +9,24 @@ import requests
 def handle_errors(app):
     @app.errorhandler(400)
     def bad_request(error):
-        return jsonify({"code": 400, "message": f"Bad request: {error.description}"}), 400
+        return redirect(url_for('error_page', code=400))
 
     @app.errorhandler(404)
     def not_found(error ):
-        return jsonify({"code": 404, "message": "Resource not found"}), 404
+        redirect(url_for('error_page', code=404))
+        return redirect(url_for('error_page', code=404))
 
     @app.errorhandler(422)
     def unprocessable_entity(error):
-        return jsonify({"code": 422, "message": f"Semantic error: {error.description}"}), 422
+        redirect(url_for('error_page', code=422))
+        return redirect(url_for('error_page', code=422))
     
+    @app.route('/error')
+    def error_page():
+        error_code = request.args.get('code', default='404')
+        return render_template('error.html', error_code=error_code)
+
+
 def update_rating(user_id, user2_id, type,num=None):
     user = User.query.get(user_id)
     user2 = User.query.get(user2_id)
