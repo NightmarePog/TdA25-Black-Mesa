@@ -100,6 +100,19 @@ def game_to_dict(game):
     }
 
 def user_to_dict(user):
+    saved_games = user.saved_games
+    # Pokud je saved_games uložen jako JSON řetězec, převedeme jej na slovník
+    if isinstance(saved_games, str):
+        saved_games = json.loads(saved_games)
+    # Ujistíme se, že u každé hry je "players" ve správném formátu (list)
+    if isinstance(saved_games, dict):
+        for game_id, game in saved_games.items():
+            players = game.get('players')
+            if isinstance(players, str):
+                try:
+                    game['players'] = json.loads(players)
+                except json.JSONDecodeError:
+                    game['players'] = []
     return {
         "uuid": user.uuid,
         "createdAt": user.created_at.isoformat(),
@@ -109,8 +122,13 @@ def user_to_dict(user):
         "wins": user.wins,
         "draws": user.draws,
         "losses": user.losses,
-        "elo": user.elo
+        "elo": user.elo,
+        "saved_games": saved_games,
+        "ban": user.ban
     }
+
+
+    
 
 def save_game(game, player_id):
     user = User.query.get(player_id)
