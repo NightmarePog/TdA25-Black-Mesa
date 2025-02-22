@@ -245,6 +245,18 @@
       h1 {
         font-size: 18px;
       }
+
+      .game-creation select {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #CCC;
+        border-radius: 5px;
+      }
+    }
+
+    .ranked-row {
+      display: table-row;
     }
     
     /* Klíčové snímky pro fade in animaci */
@@ -297,6 +309,15 @@
               <option value="Advanced">Advanced</option>
               <option value="Hard">Hard</option>
               <option value="The hardest">The hardest</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="ranked-row">
+          <td><label for="ranked">Ranked:</label></td>
+          <td>
+            <select id="ranked">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
             </select>
           </td>
         </tr>
@@ -361,6 +382,15 @@
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const isGuest = localStorage.getItem('isGuest') === 'true';
+
+    if (isGuest) {
+      // Skrytí ranked možnosti včetně popisku
+      const rankedSelect = document.getElementById('ranked');
+      if (rankedSelect) {
+        const rankedRow = rankedSelect.closest('tr');
+        rankedRow.style.display = 'none';
+      }
+    }
     
     localStorage.removeItem('playedUUID');
 
@@ -491,6 +521,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
     document.getElementById('createGame').addEventListener('click', () => {
       const gameName = document.getElementById('gameName').value.trim();
       const gameDifficulty = document.getElementById('gameDifficulty').value;
+      const ranked = isGuest ? false : document.getElementById('ranked').value === 'true';
 
       if (!gameName) {
         alert('Please enter a game name.');
@@ -502,7 +533,8 @@ fetch(`/api/v1/users/get_score/${userId}`)
         difficulty: gameDifficulty,
         board: Array(15).fill(null).map(() => Array(15).fill("")),
         local: false,
-        own: userId
+        own: userId,
+        ranked: ranked
       };
 
       fetch('/api/v1/games', {

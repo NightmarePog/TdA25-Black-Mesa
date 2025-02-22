@@ -15,23 +15,18 @@ def register_user():
     data = request.get_json()
     mes, cd = User.register(data)
     if cd == 201:
-        token = User.create_token(mes['id'])
-        # Vytvoření odpovědi a nastavení cookie
+        token = User.create_token(mes['uuid'])  # Use 'uuid' instead of 'id'
         response = jsonify(mes)
-
-        # Nastavení bezpečného cookie
         response.set_cookie(
             'auth_token',
             value=token,
-            httponly=True,         # Blokuje přístup přes JavaScript
-            secure=True,            # Posílá pouze přes HTTPS
-            samesite='Strict',     # Ochrana proti CSRF
+            httponly=True,
+            secure=True,
+            samesite='Strict',
         )
-        
         return response, cd
-    
     elif cd == 400 or cd == 422:
-        return abort(cd, description=mes)
+        abort(cd, description=mes)
     
 @user_bp.route('/', methods=['GET'])
 def get_all_users():

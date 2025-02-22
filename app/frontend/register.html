@@ -176,8 +176,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.id) {
-                    localStorage.setItem('userId', data.id);
+                if (data.uuid) {
+                    localStorage.setItem('userId', data.uuid);
                     localStorage.setItem('username', data.username);
                     window.location.href = '/menu';
                 } else {

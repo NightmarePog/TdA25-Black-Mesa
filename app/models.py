@@ -18,6 +18,7 @@ class Game(db.Model):
     winnerId = db.Column(db.Integer, nullable=True)
     code = db.Column(db.String(6), nullable=True, unique=True)
     isLocal = db.Column(db.Boolean, default=False)
+    isRanked = db.Column(db.Boolean, default=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -41,7 +42,7 @@ class User(db.Model):
     wins = db.Column(db.Integer, default=0)
     draws = db.Column(db.Integer, default=0)
     losses = db.Column(db.Integer, default=0)
-    elo = db.Column(db.Integer, default=0)
+    elo = db.Column(db.Integer, default=400)
     ban = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -63,40 +64,76 @@ class User(db.Model):
         db.session.commit()
         return new_token
     
+    # models.py - User class
+    @staticmethod
     def register(data):
         try:
-            if data.get('loginBy') in ["0", 0]:
+            # Povinné pole loginBy
+            if 'loginBy' not in data:
+                data['loginBy'] = "1"
+            
+            login_by = str(data['loginBy'])
+
+            # Guest registrace (loginBy=0)
+            if login_by == "0":
+                # Generování unikátního uživatelského jména
                 timestamp = int(datetime.now().timestamp())
-                data['username'] = f"{data['username']}_{timestamp}"
+                base_username = data.get('username', 'Guest')
+                username = f"{base_username}_{timestamp}"
+                
+                # Kontrola unikátnosti
+                while User.query.filter_by(username=username).first():
+                    timestamp += 1
+                    username = f"{base_username}_{timestamp}"
+
+                player = User(
+                    username=username,
+                    email=f"{uuid4()}@guest.local",  # Generovaný email
+                    login_by=login_by,
+                    elo=data.get('elo', 400),       # Výchozí ELO 400
+                    password_hash="guest"            # Speciální hodnota pro hosty
+                )
+
+            # Plná registrace (loginBy=1)
+            elif login_by == "1":
+                # Validace povinných polí dle API spec
+                required_fields = ['username', 'email', 'password']
+                for field in required_fields:
+                    if field not in data:
+                        return f"Missing field: {field}", 400
+
+                # Kontrola duplicit
                 if User.query.filter_by(username=data['username']).first():
                     return "Username already exists", 400
-                player = User(
-                    username=data['username'],
-                    login_by=data['loginBy'],
-                    email=str(uuid4()),
-                    password_hash="guest"
-                )
-                db.session.add(player)
-                db.session.commit()
-                return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
-            else:
-                if not data.get('username') or not data.get('email'):
-                    return "Username and email are required", 400
-                
-                if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-                    return "Username or email already exists", 400
+                if User.query.filter_by(email=data['email']).first():
+                    return "Email already exists", 400
+
                 player = User(
                     username=data['username'],
                     email=data['email'],
-                    login_by=data['loginBy']
+                    login_by=login_by,
+                    elo=data.get('elo', 400)
                 )
-                if data.get('password'):
-                    player.set_password(data['password'])
-                db.session.add(player)
-                db.session.commit()
-                
-                return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
-        except KeyError as e:
-            return f"Missing field: {str(e)}", 400
+                player.set_password(data['password'])
+
+            else:
+                return "Invalid loginBy value", 400
+
+            db.session.add(player)
+            db.session.commit()
+
+            # Response podle API specifikace
+            return {
+                "uuid": player.uuid,
+                "createdAt": player.created_at.isoformat(),
+                "username": player.username,
+                "email": player.email,
+                "elo": player.elo,
+                "wins": player.wins,
+                "draws": player.draws,
+                "losses": player.losses
+            }, 201
+
         except Exception as e:
+            db.session.rollback()
             return str(e), 422

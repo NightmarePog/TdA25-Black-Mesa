@@ -128,8 +128,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.id) {
-                    localStorage.setItem('userId', data.id);
+                if (data.uuid) {
+                    localStorage.setItem('userId', data.uuid);
                     localStorage.setItem('username', data.username);
                     window.location.href = '/menu';
                 } else {
@@ -152,8 +152,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.id) {
-                    localStorage.setItem('userId', data.id);
+                if (data.uuid) {
+                    localStorage.setItem('userId', data.uuid);
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('isGuest', 'true');
                     localStorage.setItem('time_from_leaving', Date.now());
