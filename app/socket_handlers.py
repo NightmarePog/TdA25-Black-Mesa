@@ -3,12 +3,16 @@ from flask import request
 from models import Game, User
 import json
 from utils import check_winner, game_to_dict, save_game, call_delete_game_api, call_update_game_api, determine_game_state
-import requests
+import requests, random
 
 def handle_join_game(data):
     game = Game.query.filter_by(uuid=data['game_uuid']).first()
     if not game:
         emit('error', {'message': 'Game not found.'}, room=request.sid)
+        return
+    
+    if User.query.get(data['user_id']).ban:
+        emit('error', {'message': 'You are banned.'}, room=request.sid)
         return
     
     players_list = json.loads(game.players) if game.players else []
@@ -18,7 +22,11 @@ def handle_join_game(data):
         join_room(data['game_uuid'])
         print("JOIN ROOM")
         if len(players_list) < 2:
-            role = 'X' if len(players_list) == 0 else 'O'
+            role = random.choice(['X', 'O'])
+            for player in players_list:
+                if player['role'] == role:
+                    role = 'O' if role == 'X' else 'X'
+                    break
             players_list.append({
                 'user_id': data['user_id'],
                 'username': data['username'],

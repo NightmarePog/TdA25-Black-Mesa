@@ -42,6 +42,7 @@ class User(db.Model):
     draws = db.Column(db.Integer, default=0)
     losses = db.Column(db.Integer, default=0)
     elo = db.Column(db.Integer, default=0)
+    ban = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def set_password(self, password):

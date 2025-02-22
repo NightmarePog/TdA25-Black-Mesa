@@ -11,6 +11,11 @@ game_bp = Blueprint('game', __name__, url_prefix='/api/v1/games')
 @game_bp.route('/', methods=['POST'])
 def create_game():
     data = request.get_json()
+    isUserBanned = User.query.get(data['own']).ban
+    if isUserBanned:
+        print("User is banned")
+        abort(403, description="You are banned")
+        
     try:
         is_valid, error = validate_game(data['board'])
         if not is_valid:

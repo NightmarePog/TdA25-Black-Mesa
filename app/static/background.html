@@ -8,7 +8,7 @@
         body {
             background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
             margin: 0;
-            overflow: hidden;
+            overflow: auto;
         }
 
         canvas {
@@ -17,84 +17,8 @@
     </style>
 </head>
 <body>
-    <canvas id="waveCanvas"></canvas>
-    <script>
-        const canvas = document.getElementById('waveCanvas');
-        const ctx = canvas.getContext('2d');
-        const waveHeights = [30, 25, 20];
-        const waveSpeeds = [Math.random() * 0.1 + 0.2, Math.random() * 0.2 + 0.2, Math.random() * 0.25 + 0.2];
-        let offset = [0, 0, 0];
-        let verticalOffsets = [0, 0, 0]; // Pro vertikální pohyb vln
-        let lastTime = performance.now();
-
-        // Randomizované hodnoty pro každou vlnu
-        const randomFactors = waveHeights.map(() => ({
-            speed: Math.random() * 0.5 + 0.2,  // náhodná rychlost vlny (od 0.2 do 0.7)
-            verticalMovement: Math.random() * 30 + 5,  // náhodný vertikální pohyb (od 5 do 20)
-            offsetFactor: Math.random() * 4 + 1,  // náhodný faktor pro horizontalitu pohybu
-        }));
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        function drawWaves(timestamp) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Calculate delta time
-            let deltaTime = (timestamp - lastTime) / 1000; // in seconds
-            lastTime = timestamp;
-
-            // Gradient background
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, canvas.height * 0.9, canvas.width, canvas.height * 0.3); // Bílá barva dole
-
-            // Draw waves
-            for (let i = 0; i < waveHeights.length; i++) {
-                if (i === 1) {
-                    offset[i] -= waveSpeeds[i] * deltaTime * 100 * randomFactors[i].offsetFactor; // Reverse direction for the middle wave
-                } else {
-                    offset[i] += waveSpeeds[i] * deltaTime * 100 * randomFactors[i].offsetFactor;
-                }
-
-                // Vertikální pohyb vlny s variabilitou
-                verticalOffsets[i] = Math.sin(timestamp * 0.001 * randomFactors[i].speed + i) * randomFactors[i].verticalMovement;
-
-                drawWave(i);
-            }
-
-            requestAnimationFrame(drawWaves);
-        }
-
-        function drawWave(index) {
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            // Tmavší barvy pro vlny dále v pozadí
-            gradient.addColorStop(0, `rgba(255, 255, 255, ${(index + 1) * 0.2})`);  // Světlejší
-            gradient.addColorStop(1, `rgba(230, 230, 230, ${(index + 1) * 0.4})`);  // Tmavší
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height * 0.3 + verticalOffsets[index]); // Přidání vertikálního pohybu
-
-            const waveHeight = (2 / 5) * canvas.height - 139;
-            const amplitude = waveHeights[index];
-            const frequency = 0.02;
-
-            for (let x = 0; x <= canvas.width; x++) {
-                const y = canvas.height * 0.8 + amplitude * Math.sin(frequency * (x + offset[index])) + verticalOffsets[index]; // Přidání vertikálního pohybu
-                ctx.lineTo(x, y);
-            }
-
-            ctx.lineTo(canvas.width, canvas.height);
-            ctx.lineTo(0, canvas.height);
-            ctx.closePath();
-            ctx.fill();
-        }
-        
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        requestAnimationFrame(drawWaves);
-    </script>
+    <!-- main/app/static/background.html -->
+<!-- main/app/static/background.html -->
+<canvas id="waveCanvas"></canvas>
 </body>
 </html>

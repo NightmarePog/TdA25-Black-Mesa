@@ -1,25 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <style>
-        body { font-family: 'Dosis', sans-serif; margin: 20px; }
-        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-        h1 { text-align: center; }
-        .info { margin-bottom: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uživatelský profil</title>
+  <style>
+    body {
+      font-family: 'Dosis', sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .info {
+      margin-bottom: 15px;
+    }
+    .game {
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      background-color: #fafafa;
+    }
+    .game-header {
+      background-color: #f0f0f0;
+      padding: 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    /* Tabulka pro zobrazení informace a desky */
+    .game-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .game-table td {
+      vertical-align: top;
+      padding: 10px;
+      border: none;
+    }
+    /* Styl pro herní desku */
+    .board-table {
+      border-collapse: collapse;
+      margin: auto;
+    }
+    .board-table td {
+      border: 1px solid #ccc;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      font-size: 12px;
+      padding: 2px;
+    }
+    .game-info p, .game-info ul {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>User Profile</h1>
-        <p class="info"><strong>Username:</strong> {{ user_info.username }}</p>
-        <p class="info"><strong>Wins:</strong> {{ user_info.wins }}</p>
-        <p class="info"><strong>Draws:</strong> {{ user_info.draws }}</p>
-        <p class="info"><strong>Looses:</strong> {{ user_info.looses }}</p>
-        <p class="info"><strong>ELO Rating:</strong> {{ user_info.elo }}</p>
-        <p class="info"><strong>Account Created:</strong> {{ user_info.created_at }}</p>
+  <div class="container">
+    <h1>Uživatelský profil</h1>
+    <div class="info">
+      <p><strong>UUID:</strong> {{ user_info.uuid }}</p>
+      <p><strong>Uživatelské jméno:</strong> {{ user_info.username }}</p>
+      <p><strong>Email:</strong> {{ user_info.email }}</p>
+      <p><strong>Vytvořen účet:</strong> {{ user_info.createdAt }}</p>
+      <p><strong>LoginBy:</strong> {{ user_info.loginBy }}</p>
+      <p><strong>Výhry:</strong> {{ user_info.wins }}</p>
+      <p><strong>Remízy:</strong> {{ user_info.draws }}</p>
+      <p><strong>Prohry:</strong> {{ user_info.losses }}</p>
+      <p><strong>ELO rating:</strong> {{ user_info.elo }}</p>
     </div>
+    
+    <h2>Uložené hry</h2>
+    {% if user_info.saved_games %}
+      {% for game_id, game in user_info.saved_games.items() %}
+      <div class="game">
+        <div class="game-header">{{ game.name }}</div>
+        <table class="game-table">
+          <tr>
+            <!-- Levý sloupec: textové informace o hře -->
+            <td class="game-info" style="width:60%;">
+              <p><strong>UUID:</strong> {{ game.uuid }}</p>
+              <p><strong>Vytvořeno:</strong> {{ game.createdAt }}</p>
+              <p><strong>Aktualizováno:</strong> {{ game.updatedAt }}</p>
+              <p><strong>Obtížnost:</strong> {{ game.difficulty }}</p>
+              <p><strong>Stav hry:</strong> {{ game.gameState }}</p>
+              <p><strong>Kód hry:</strong> {{ game.code }}</p>
+              <p>
+                <strong>Vyhrál:</strong>
+                {% if game.winnerId %}
+                  {% for player in game.players %}
+                    {% if player.user_id == game.winnerId %}
+                      {{ player.username }} (UUID: {{ player.user_id }})
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
+                  Není určen
+                {% endif %}
+              </p>
+              <p><strong>Hráči:</strong></p>
+              <ul>
+                {% for player in game.players %}
+                  <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
+                {% endfor %}
+              </ul>
+            </td>
+            <!-- Pravý sloupec: okno s vykreslenou herní deskou -->
+            <td class="game-board" style="width:40%;">
+              <table class="board-table">
+                {% for row in game.board %}
+                <tr>
+                  {% for cell in row %}
+                  <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
+                    {{ cell }}
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p>Žádné uložené hry.</p>
+    {% endif %}
+  </div>
 </body>
 </html>
