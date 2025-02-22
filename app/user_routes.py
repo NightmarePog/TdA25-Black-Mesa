@@ -12,8 +12,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/v1/users')
 
 @user_bp.route('', methods=['POST'])
 def register_user():
-    return("I am an working api!")
-'''   data = request.get_json()
+    data = request.get_json()
     mes, cd = User.register(data)
     if cd == 201:
         token = User.create_token(mes['id'])
@@ -34,7 +33,6 @@ def register_user():
     elif cd == 400 or cd == 422:
         return abort(cd, description=mes)
     
-'''
 @user_bp.route('', methods=['GET'])
 def get_all_users():
     query = User.query
