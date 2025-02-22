@@ -64,37 +64,36 @@ class User(db.Model):
     
     def register(data):
         try:
-            if data.get('loginBy') in ["0", 0] or data.get('loginBy') == None:
-                timestamp = int(datetime.now().timestamp())
-                data['username'] = f"{data['username']}_{timestamp}"
-                if User.query.filter_by(username=data['username']).first():
-                    return "Username already exists", 400
-                player = User(
-                    username=data['username'],
-                    login_by=data['loginBy'],
-                    email=str(uuid4()),
-                    password_hash="guest"
-                )
-                db.session.add(player)
-                db.session.commit()
-                return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
-            else:
-                if not data.get('username') or not data.get('email'):
-                    return "Username and email are required", 400
+            timestamp = int(datetime.now().timestamp())
+            data['username'] = f"{data['username']}_{timestamp}"
+            if User.query.filter_by(username=data['username']).first():
+                return "Username already exists", 400
+            player = User(
+                username=data['username'],
+                login_by=data['loginBy'],
+                email=str(uuid4()),
+                password_hash="guest"
+            )
+            db.session.add(player)
+            db.session.commit()
+            return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
+            
+            if not data.get('username') or not data.get('email'):
+                return "Username and email are required", 400
+            
+            if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
+                return "Username or email already exists", 400
+            player = User(
+                username=data['username'],
+                email=data['email'],
+                login_by=data['loginBy']
+            )
+            if data.get('password'):
+                player.set_password(data['password'])
+            db.session.add(player)
+            db.session.commit()
                 
-                if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-                    return "Username or email already exists", 400
-                player = User(
-                    username=data['username'],
-                    email=data['email'],
-                    login_by=data['loginBy']
-                )
-                if data.get('password'):
-                    player.set_password(data['password'])
-                db.session.add(player)
-                db.session.commit()
-                
-                return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
+            return {"message": "User registered successfully", "id": player.uuid, "username": player.username}, 201
         except KeyError as e:
             return f"Missing field: {str(e)}", 400
         except Exception as e:
