@@ -64,7 +64,7 @@ class User(db.Model):
     
     def register(data):
         try:
-            if data.get('loginBy') in ["0", 0]:
+            if data.get('loginBy') in ["0", 0] or data.get('loginBy') == None:
                 timestamp = int(datetime.now().timestamp())
                 data['username'] = f"{data['username']}_{timestamp}"
                 if User.query.filter_by(username=data['username']).first():
