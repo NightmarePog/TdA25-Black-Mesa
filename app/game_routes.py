@@ -8,7 +8,7 @@ from utils import validate_game, determine_game_state, check_winner, game_to_dic
 
 game_bp = Blueprint('game', __name__, url_prefix='/api/v1/games')
 
-@game_bp.route('', methods=['POST'])
+@game_bp.route('/', methods=['POST'])
 def create_game():
     data = request.get_json()
     isUserBanned = User.query.get(data['own']).ban
@@ -41,7 +41,7 @@ def create_game():
         print(e)
         abort(422, description=str(e))
 
-@game_bp.route('', methods=['GET'])
+@game_bp.route('/', methods=['GET'])
 def get_all_games():
     difficulty = request.args.get('difficulty')
     name = request.args.get('name')
