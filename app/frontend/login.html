@@ -4,25 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 0;
             height: 100vh;
-            width: 100%;
             overflow: hidden;
             font-family: 'Dosis', sans-serif;
             background-color: #F6F6F6;
-            box-sizing: border-box;
         }
 
-        .background-container {
-            position: absolute;
-            top: 90px; /* Adjust to ensure no overlap with top-bar */
+        #waveCanvas {
+            position: fixed;
+            top: 0;
             left: 0;
-            width: 100%;
-            height: calc(100% - 90px);
-            z-index: -1;
+            z-index: 0;
         }
 
         .login-container {
@@ -35,13 +32,13 @@
             width: 100%;
             max-width: 600px;
             height: 350px;
-            margin-top: 25vh;
+            margin-top: 15vh;
             margin-left: auto;
             margin-right: auto;
-            box-sizing: border-box;
+            position: relative;
             z-index: 1;
         }
-        
+
         .form {
             width: 45%;
         }
@@ -86,7 +83,7 @@
     </style>
 </head>
 <body>
-    <div id="dynamic-content"></div>
+    <canvas id="waveCanvas"></canvas>
     
     <div class="login-container">
         <div class="form">
@@ -107,26 +104,18 @@
         </div>
     </div>
 
+    <script src="/static/js/waves.js"></script>
     <script>
-        // Načíst obsah z background.html 
-        fetch('static/background.html') 
-            .then(response => response.text()) 
-            .then(data => { 
-                // Vložit načtený obsah přímo do těla (body) 
-                document.body.insertAdjacentHTML('afterbegin', data); 
-            }) 
-            .catch(error => console.error('Error loading HTML:', error));
+        // Wave animation code
 
+        // Původní login funkcionalita
         const userIdStorage = localStorage.getItem('userId');
-
         if (userIdStorage) {
             window.location.href = '/menu';
         }
 
-        // Přihlášení jako registrovaný uživatel
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
@@ -139,8 +128,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.id) {
-                    localStorage.setItem('userId', data.id);
+                if (data.uuid) {
+                    localStorage.setItem('userId', data.uuid);
                     localStorage.setItem('username', data.username);
                     window.location.href = '/menu';
                 } else {
@@ -150,10 +139,8 @@
             .catch(error => console.error('Error:', error));
         });
 
-        // Přihlášení jako guest
         document.getElementById('guestForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const nickname = document.getElementById('nickname').value;
 
             fetch('/api/v1/users', {
@@ -165,8 +152,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.id) {
-                    localStorage.setItem('userId', data.id);
+                if (data.uuid) {
+                    localStorage.setItem('userId', data.uuid);
                     localStorage.setItem('username', data.username);
                     localStorage.setItem('isGuest', 'true');
                     localStorage.setItem('time_from_leaving', Date.now());
@@ -178,7 +165,6 @@
             .catch(error => console.error('Error:', error));
         });
 
-        // Přesměrování na registraci
         document.getElementById('registerButton').addEventListener('click', function() {
             window.location.href = '/register';
         });

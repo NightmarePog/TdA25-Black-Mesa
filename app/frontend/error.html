@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Dosis', sans-serif;
+        }
+
+        body {
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #ffffff;
+            margin-bottom: 30px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .back-link {
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Oops! Something went wrong.</h1>
+        <p>We encountered an error.</p>
+        <div class="error-code" id="errorCode">404</div>
+        <img id="catImage" src="https://http.cat/404" alt="Error Cat">
+        <a href="/" class="back-link">Go back to the homepage</a>
+    </div>
+
+    <script>
+        // Získání chybového kódu z URL (např. ?code=404)
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorCode = urlParams.get('code') || '404'; // Výchozí kód je 404
+
+        // Nastavení chybového kódu a obrázku kočky
+        document.getElementById('errorCode').textContent = errorCode;
+        document.getElementById('catImage').src = `https://http.cat/${errorCode}`;
+    </script>
+</body>
+</html>

@@ -90,6 +90,23 @@
       border-radius: 5px;
     }
 
+    /* Přidané tlačítko pro zobrazení zabanovaných uživatelů */
+    .filter-btn {
+      background-color: #395A9A;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 0 5px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+      background-color: #724479;
+    }
+
     .user-list {
       margin: 20px auto;
       padding: 15px;
@@ -182,11 +199,12 @@
 
   <h1>User List</h1>
 
-  <!-- Vyhledávací pole -->
+  <!-- Vyhledávací pole a filtr -->
   <div class="search-container">
     <input type="text" id="searchInput" placeholder="Hledat uživatele (username nebo UUID)...">
     <button id="searchBtn" class="profile-btn">Vyhledat</button>
     <button id="clearSearch" class="profile-btn">Zobrazit všechny</button>
+    <button id="showBanned" class="filter-btn">Zobrazit zabanované</button>
   </div>
 
   <div class="user-list">
@@ -195,6 +213,7 @@
         <tr>
           <th>ID</th>
           <th>Username</th>
+          <th>Zabanován</th>
           <th>Akce</th>
         </tr>
       </thead>
@@ -227,10 +246,11 @@
         row.innerHTML = `
           <td>${user.uuid}</td>
           <td>${user.username}</td>
+          <td>${user.ban ? 'Ano' : 'Ne'}</td>
           <td>
             <button onclick="viewProfile('${user.uuid}')" class="profile-btn">Vidět profil</button>
             <button onclick="deleteUser('${user.uuid}')" class="profile-btn">Smazat</button>
-            <button onclick="banUser('${user.uuid}')" class="profile-btn">Zabanovat</button>
+            <button onclick="banUser('${user.uuid}')" class="profile-btn">${user.ban ? 'Odbanovat' : 'Zabanovat'}</button>
           </td>
         `;
         tbody.appendChild(row);
@@ -278,9 +298,27 @@
       });
     }
 
+    // Nová funkce načte všechny uživatele a následně vyfiltruje pouze ty zabanované
+    function loadBannedUsers() {
+      fetch('/api/v1/users/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        const bannedUsers = data.filter(user => user.ban);
+        renderUsers(bannedUsers);
+      })
+      .catch(error => {
+        console.error('Error loading banned users:', error);
+        alert('Failed to load banned users');
+      });
+    }
+
     function viewProfile(userId) {
-      // Implementace navigace na profil uživatele
-      alert('Zobrazuji profil uživatele s ID: ' + userId);
+      window.location.href = '/user/' + userId;
     }
 
     function deleteUser(userId) {
@@ -289,8 +327,25 @@
     }
 
     function banUser(userId) {
-      // Implementace banování uživatele
-      alert('Zabanovat uživatele s ID: ' + userId);
+      fetch(`/api/v1/users/ban/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          loadUsers(currentMin, currentMax); // Reload users list to reflect changes
+        } else {
+          alert('Failed to ban user');
+        }
+      })
+      .catch(error => {
+        console.error('Error banning user:', error);
+        alert('Failed to ban user');
+      });
     }
 
     // Ovládání stránkování
@@ -324,6 +379,11 @@
       currentMin = 1;
       currentMax = 50;
       loadUsers(currentMin, currentMax);
+    });
+
+    // Tlačítko pro zobrazení zabanovaných uživatelů
+    document.getElementById('showBanned').addEventListener('click', () => {
+      loadBannedUsers();
     });
 
     // Funkce pro odhlášení

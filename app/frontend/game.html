@@ -10,7 +10,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Dosis', sans-serif;
         }
 
         body {
@@ -47,7 +47,7 @@
             align-items: center;
             justify-content: center;
             margin: 5px;
-            width: 22%; /* Adjusted to fit four blocks side by side */
+            width: 22%;
         }
 
         #gameStatusContainer, #turnContainer, #gameStateContainer {
@@ -192,6 +192,7 @@
     <div id="board" class="board"></div>
     <div class="player-list" id="playerList"></div>
     <button id="menuButton" class="game-btn">Go to main page</button>
+    <button id="surrenderButton" class="game-btn">Surrender</button>
 
     <script>
         const username = localStorage.getItem('username');
@@ -208,14 +209,12 @@
         let gameCode = "local";
         let board = Array(15).fill(null).map(() => Array(15).fill(null));
 
-        // Získání referencí na prvky na stránce
         const boardElement = document.getElementById("board");
         const gameCodeElement = document.getElementById("gameCode");
         const gameStatusElement = document.getElementById("gameStatus");
         const turnElement = document.getElementById("turn");
         const playerListElement = document.getElementById("playerList");
         const gameStateElement = document.getElementById("gameState");
-
 
         if (!userId) {
             window.location.href = '/login';
@@ -257,13 +256,12 @@
             localStorage.setItem('time_from_leaving', Date.now());
         });
 
-        // API endpointy
-        const API_BASE_URL = "/api/v1/"; // Uprav podle své konfigurace
+        const API_BASE_URL = "/api/v1/";
         const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
 
         async function getGameData() {
             try {
-                const response = await fetch(`${GAME_API_URL}`, {
+                const response = await fetch(GAME_API_URL, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                 });
@@ -280,7 +278,6 @@
         }
         getGameData();
 
-        // Inicializace herního plánu
         function createBoard() {
             boardElement.innerHTML = "";
             for (let row = 0; row < 15; row++) {
@@ -291,18 +288,17 @@
                     cell.dataset.col = col;
                     boardElement.appendChild(cell);
 
-                    // Kliknutí na buňku
                     cell.addEventListener("click", () => handleCellClick(row, col));
                 }
             }
         }
 
-        // Aktualizace herního stavu na základě API dat
         async function fetchGameState() {
             try {
                 const response = await fetch(GAME_API_URL);
                 if (response.ok) {
                     gameData = await response.json();
+                    updateGameState(gameData);
                 } else {
                     console.error("Chyba při načítání herního stavu:", response.statusText);
                 }
@@ -311,21 +307,14 @@
             }
         }
 
-        // Zpracování herního stavu
         function updateGameState(gameData) {
             board = gameData.board;
             playerList = gameData.players;
             winnerId = gameData.winnerId;
 
-            // Aktualizace UI
             turnElement.textContent = currentTurn;
-            console.log(winnerId)
             if (winnerId !== null) {
-                console.log("winnerId is not null")
-                console.log(playerList)
-
                 for (value in playerList) {
-                    console.log(playerList[value].user_id === winnerId)
                     if (playerList[value].user_id === winnerId) {
                         gameStatusElement.textContent = playerList[value].username + " won!";
                     }
@@ -346,14 +335,10 @@
                 }
             }
 
-            // Zobrazení hráčů
             updatePlayerList();
-
-            // Aktualizace herního plánu
             updateBoardUI(winnerId);
         }
 
-        // Aktualizace UI herního plánu
         function updateBoardUI(winnerId) {
             const boardElement = document.getElementById('board');
             boardElement.innerHTML = '';
@@ -390,14 +375,12 @@
             }
         }
 
-        // Kliknutí na buňku
         async function handleCellClick(row, col) {
             if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
                 return;
             }
             
             board[row][col] = currentTurn;
-            console.log(board)
             
             if (currentTurn === "X") {
                 currentTurn = "O";
@@ -406,7 +389,7 @@
             }
 
             try {
-                const response = await fetch(`${GAME_API_URL}`, {
+                const response = await fetch(GAME_API_URL, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ "board": board, "difficulty": gameData.difficulty, name: gameData.name, "save_game_to_user": localStorage.getItem('userId') }),
@@ -423,7 +406,6 @@
             }
         }
 
-        // Aktualizace seznamu hráčů
         function updatePlayerList() {
             playerListElement.innerHTML = "";
             playerList.forEach((player) => {
@@ -438,16 +420,36 @@
             });
         }
 
-        // Načtení iniciálního herního stavu
+        async function handleSurrender() {
+            try {
+                const response = await fetch(`${GAME_API_URL}/surrender`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: userId }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(result.message);
+                    window.location.href = '/menu';
+                } else {
+                    console.error("Chyba při kapitulaci:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Chyba při komunikaci s API:", error);
+            }
+        }
+
         createBoard();
         fetchGameState();
-
-        // Opakované aktualizace herního stavu
         setInterval(fetchGameState, 2000);
 
         document.getElementById("menuButton").addEventListener("click", () => {
-            window.location.href = `/menu`;
+            window.location.href = '/menu';
         });
+
+        document.getElementById("surrenderButton").addEventListener("click", handleSurrender);
     </script>
 </body>
 </html>
+<-- please finish surrender button functionallity uwu -->

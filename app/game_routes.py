@@ -11,25 +11,34 @@ game_bp = Blueprint('game', __name__, url_prefix='/api/v1/games')
 @game_bp.route('/', methods=['POST'])
 def create_game():
     data = request.get_json()
+    isUserBanned = User.query.get(data['own']).ban
+    if isUserBanned:
+        print("User is banned")
+        abort(403, description="You are banned")
+        
     try:
         is_valid, error = validate_game(data['board'])
         if not is_valid:
             abort(400, description=error)
         game_state = determine_game_state(data['board'])
+
         game = Game(
             name=data['name'],
             difficulty=data['difficulty'],
             board=data['board'],
             game_state=game_state,
             players=data.get('players', []),
-            isLocal=data["local"]
+            isLocal=data["local"],
+            isRanked=data.get("ranked", False),
         )
         db.session.add(game)
         db.session.commit()
         return jsonify(game_to_dict(game)), 201
     except KeyError as e:
+        print(e)
         abort(400, description=f"Missing field: {str(e)}")
     except Exception as e:
+        print(e)
         abort(422, description=str(e))
 
 @game_bp.route('/', methods=['GET'])
@@ -125,3 +134,14 @@ def delete_game(uuid):
     db.session.delete(game)
     db.session.commit()
     return '', 204
+
+@game_bp.route('/<uuid>/surrender', methods=['PUT'])
+def surrender(uuid):
+    game = Game.query.get(uuid)
+    if not game:
+        abort(404)
+        game.game_state = "draw"
+        db.session.commit()
+        players = json.loads(game.players) if isinstance(game.players, str) else game.players
+        update_rating(players[1]['user_id'], players[0]['user_id'], "draws")
+        update_rating(players[0]['user_id'], players[1]['user_id'], "draws")

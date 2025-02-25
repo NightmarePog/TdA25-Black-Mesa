@@ -10,30 +10,25 @@ from utils import user_to_dict
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/v1/users')
 
-@user_bp.route('/', methods=['POST'])
+@user_bp.route('', methods=['POST'])
 def register_user():
     data = request.get_json()
     mes, cd = User.register(data)
     if cd == 201:
-        token = User.create_token(mes['id'])
-        # Vytvoření odpovědi a nastavení cookie
+        token = User.create_token(mes['uuid'])  # Use 'uuid' instead of 'id'
         response = jsonify(mes)
-
-        # Nastavení bezpečného cookie
         response.set_cookie(
             'auth_token',
             value=token,
-            httponly=True,         # Blokuje přístup přes JavaScript
-            secure=True,            # Posílá pouze přes HTTPS
-            samesite='Strict',     # Ochrana proti CSRF
+            httponly=True,
+            secure=True,
+            samesite='Strict',
         )
-        
         return response, cd
-    
     elif cd == 400 or cd == 422:
-        return abort(cd, description=mes)
+        abort(cd, description=mes)
     
-@user_bp.route('/', methods=['GET'])
+@user_bp.route('', methods=['GET'])
 def get_all_users():
     query = User.query
     users = query.all()
@@ -101,7 +96,8 @@ def get_player(uuid):
         "id": player.uuid,
         "username": player.username,
         "email": player.email,
-        "loginBy": player.login_by
+        "loginBy": player.login_by,
+        "ban": player.ban
     }), 200
 
 @user_bp.route('/saved_games/<string:user_id>', methods=['GET'])
@@ -111,6 +107,20 @@ def get_saved_games(user_id):
         return jsonify({"error": "User not found"}), 404
     saved_games = json.loads(user.saved_games) if isinstance(user.saved_games, str) else user.saved_games
     return jsonify([{"uuid": k, **v} for k, v in saved_games.items()])
+
+@user_bp.route('/ban/<string:user_id>', methods=['POST'])
+def ban_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    user.ban = not user.ban
+    db.session.commit()
+    mes = "User banned successfully"
+    if not user.ban:
+        mes = "User unbanned successfully"
+
+    return jsonify({"message": mes}), 200
 
 @user_bp.route('/saved_games/<user_uuid>/<game_uuid>', methods=['DELETE'])
 def delete_saved_game(user_uuid, game_uuid):
@@ -143,7 +153,7 @@ def get_score(user_uuid):
         'wins': user.wins,
         'draws': user.draws,
         'losses': user.losses,
-        'rating': user.rating
+        'rating': user.elo
     }
     return jsonify(user_stats)
 

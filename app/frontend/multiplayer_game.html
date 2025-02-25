@@ -10,7 +10,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Dosis', sans-serif;
         }
 
         body {
@@ -246,6 +246,7 @@
             const turn = document.getElementById('turn');
             const gameState = document.getElementById('gameState');
             gameStarted = data.started;
+            console.log(data.turn)
             if (data.turn !== undefined) {
                 currentTurn = data.turn;
             } else {
