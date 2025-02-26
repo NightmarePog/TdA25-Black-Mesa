@@ -1,4 +1,5 @@
-# ThinkTacToe - tvořeno ve spolupráci s Think Difrrent Academy
+# ThinkTacToe
+# Tvořeno ve spolupráci s Think Difrrent Academy
 ## Popis
 naše hra ThinkTacToe je hra vytvořená ve spolupráci s Think Diffrent Academy za účelem popularizování hraní piškvorek
 naše aplikace má nadčasové funkce jako Matchmaking, ELO a mnohem víc
