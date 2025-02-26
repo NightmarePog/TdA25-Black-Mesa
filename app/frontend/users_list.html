@@ -171,7 +171,7 @@
 
     /* Styly pro akční tlačítka */
     .profile-btn {
-      background-color: #395A9A;
+      background-color: #0070BB;
       color: #FFFFFF;
       border: none;
       padding: 8px 12px;
@@ -185,6 +185,13 @@
     .profile-btn:hover {
       background-color: #724479;
     }
+
+    tr {
+    justify-content: center;
+    align-items: center;
+    }
+
+
   </style>
 </head>
 <body>
@@ -211,7 +218,6 @@
     <table id="usersTable">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Username</th>
           <th>Zabanován</th>
           <th>Akce</th>
@@ -244,7 +250,6 @@
       users.forEach(user => {
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${user.uuid}</td>
           <td>${user.username}</td>
           <td>${user.ban ? 'Ano' : 'Ne'}</td>
           <td>
