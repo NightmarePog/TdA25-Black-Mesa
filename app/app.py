@@ -47,6 +47,12 @@ def create_app():
         print(a, b)
         print("Database initialized")
 
+    from game_routes import matchmaking_background_task
+    import threading
+    thread = threading.Thread(target=matchmaking_background_task, args=(app,))
+    thread.daemon = True
+    thread.start()
+
     return app
 
 if __name__ == '__main__':
