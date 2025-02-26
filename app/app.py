@@ -33,9 +33,9 @@ def create_app():
         db.create_all()
         a, b = User.register({
             'loginBy': 1,
-            'username': 'admin',
-            'email': "admin@admin.com",
-            'password': "admin"})
+            'username': 'TdA',
+            'email': "tda@scg.cz",
+            'password': "StudentCyberGames25!"})
         
         for i in range(61):
             User.register({

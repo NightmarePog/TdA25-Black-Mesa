@@ -56,7 +56,7 @@ def login_user():
         # Vytvoření odpovědi a nastavení cookie
         response = jsonify({
             "message": "Login successful",
-            "id": player.uuid,
+            "uuid": player.uuid,
             "username": player.username
         })
         
@@ -83,6 +83,10 @@ def delete_user(uuid):
     user = User.query.get(uuid)
     if not user:
         return jsonify({'message': 'User not found'}), 404
+    
+    if user.email == "tda@scg.cz":
+        return jsonify({"error": "You cannot delete the admin"}), 400
+    
     db.session.delete(user)
     db.session.commit()
     return jsonify({'message': 'User deleted'}), 200
@@ -108,11 +112,31 @@ def get_saved_games(user_id):
     saved_games = json.loads(user.saved_games) if isinstance(user.saved_games, str) else user.saved_games
     return jsonify([{"uuid": k, **v} for k, v in saved_games.items()])
 
+@user_bp.route('/isAdmin', methods=['GET'])
+def isAdminByCookies():
+    auth_token = request.cookies.get('auth_token')
+    if not auth_token:
+        return jsonify({"error": "No token provided"}), 401
+
+    # Přetypování JSON sloupce na text a hledání tokenu jako podřetězce
+    user = User.query.filter(User.tokens.cast(db.Text).like(f'%"{auth_token}"%')).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.email == "tda@scg.cz":
+        return jsonify({"isAdmin": True}), 200
+    else:
+        return jsonify({"isAdmin": False}), 200
+
+
+
 @user_bp.route('/ban/<string:user_id>', methods=['POST'])
 def ban_user(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
+    if user.email == "tda@scg.cz":
+        return jsonify({"error": "You cannot ban the admin"}), 400
     
     user.ban = not user.ban
     db.session.commit()

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uživatelský profil</title>
+  <title>User Profile</title>
   <style>
     body {
       font-family: 'Dosis', sans-serif;
@@ -41,7 +41,6 @@
       text-align: center;
       margin-bottom: 10px;
     }
-    /* Tabulka pro zobrazení informace a desky */
     .game-table {
       width: 100%;
       border-collapse: collapse;
@@ -51,7 +50,6 @@
       padding: 10px;
       border: none;
     }
-    /* Styl pro herní desku */
     .board-table {
       border-collapse: collapse;
       margin: auto;
@@ -68,40 +66,120 @@
       margin: 4px 0;
       font-size: 14px;
     }
+    #waveCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .header {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nickname-box {
+      display: flex;
+      align-items: center;
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nickname-box:hover {
+      background-color: #080808;
+    }
+
+    .menu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #FFFFFF;
+      color: #1A1A1A;
+      border: 1px solid #CCC;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .nickname-box:hover .menu {
+      display: block;
+    }
+
+    .menu button {
+      background-color: #E31837;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .menu button:hover {
+      background-color: #AB2E58;
+    }
+
+    @media screen and (max-width: 600px) {
+      .header {
+        top: 10px;
+        right: 10px;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="header">
+    <div class="nickname-box">
+      <span id="nickname">Loading...</span>
+      <div class="menu">
+        <button id="logout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
   <div class="container">
-    <h1>Uživatelský profil</h1>
+    <h1>User Profile</h1>
     <div class="info">
       <p><strong>UUID:</strong> {{ user_info.uuid }}</p>
-      <p><strong>Uživatelské jméno:</strong> {{ user_info.username }}</p>
-      <p><strong>Email:</strong> {{ user_info.email }}</p>
-      <p><strong>Vytvořen účet:</strong> {{ user_info.createdAt }}</p>
-      <p><strong>LoginBy:</strong> {{ user_info.loginBy }}</p>
-      <p><strong>Výhry:</strong> {{ user_info.wins }}</p>
-      <p><strong>Remízy:</strong> {{ user_info.draws }}</p>
-      <p><strong>Prohry:</strong> {{ user_info.losses }}</p>
-      <p><strong>ELO rating:</strong> {{ user_info.elo }}</p>
+      <p><strong>Username:</strong> {{ user_info.username }}</p>
+      <p id="emailRow"><strong>Email:</strong> Email</p>
+      <p><strong>Account Created:</strong> {{ user_info.createdAt }}</p>
+      <p><strong>Account Type:</strong> {{ "Registered" if user_info.loginBy == 1 else "Guest" }}</p>
+      <p><strong>Wins:</strong> {{ user_info.wins }}</p>
+      <p><strong>Draws:</strong> {{ user_info.draws }}</p>
+      <p><strong>Losses:</strong> {{ user_info.losses }}</p>
+      <p><strong>ELO Rating:</strong> {{ user_info.elo }}</p>
     </div>
     
-    <h2>Uložené hry</h2>
+    <h2>Saved Games</h2>
     {% if user_info.saved_games %}
       {% for game_id, game in user_info.saved_games.items() %}
       <div class="game">
         <div class="game-header">{{ game.name }}</div>
         <table class="game-table">
           <tr>
-            <!-- Levý sloupec: textové informace o hře -->
             <td class="game-info" style="width:60%;">
               <p><strong>UUID:</strong> {{ game.uuid }}</p>
-              <p><strong>Vytvořeno:</strong> {{ game.createdAt }}</p>
-              <p><strong>Aktualizováno:</strong> {{ game.updatedAt }}</p>
-              <p><strong>Obtížnost:</strong> {{ game.difficulty }}</p>
-              <p><strong>Stav hry:</strong> {{ game.gameState }}</p>
-              <p><strong>Kód hry:</strong> {{ game.code }}</p>
+              <p><strong>Created:</strong> {{ game.createdAt }}</p>
+              <p><strong>Last Updated:</strong> {{ game.updatedAt }}</p>
+              <p><strong>Difficulty:</strong> {{ game.difficulty }}</p>
+              <p><strong>Game State:</strong> {{ game.gameState }}</p>
+              <p><strong>Game Code:</strong> {{ game.code }}</p>
               <p>
-                <strong>Vyhrál:</strong>
+                <strong>Winner:</strong>
                 {% if game.winnerId %}
                   {% for player in game.players %}
                     {% if player.user_id == game.winnerId %}
@@ -109,17 +187,16 @@
                     {% endif %}
                   {% endfor %}
                 {% else %}
-                  Není určen
+                  Not determined
                 {% endif %}
               </p>
-              <p><strong>Hráči:</strong></p>
+              <p><strong>Players:</strong></p>
               <ul>
                 {% for player in game.players %}
                   <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
                 {% endfor %}
               </ul>
             </td>
-            <!-- Pravý sloupec: okno s vykreslenou herní deskou -->
             <td class="game-board" style="width:40%;">
               <table class="board-table">
                 {% for row in game.board %}
@@ -138,8 +215,56 @@
       </div>
       {% endfor %}
     {% else %}
-      <p>Žádné uložené hry.</p>
+      <p>No saved games.</p>
     {% endif %}
   </div>
+
+  <script>
+      const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const isGuest = localStorage.getItem('isGuest') === 'true';
+    
+    document.getElementById('logout').addEventListener('click', () => {
+      if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+      localStorage.clear();
+      window.location.href = '/login';
+    });
+
+    document.getElementById('nickname').textContent = username || 'Unknown User';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Kontrola jestli jsme na profilové stránce
+        if (document.querySelector('h1').textContent === 'User Profile') {
+            checkAdminStatus();
+            updateLoginByText();
+        }
+    });
+    
+    async function checkAdminStatus() {
+        try {
+            const response = await fetch('/api/v1/users/isAdmin', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            // Skrytí emailu pro ne-adminy
+            const emailRow = document.querySelector('#emailRow');
+            if (emailRow && !data.isAdmin) {
+                emailRow.style.display = 'none';
+            }else {
+                emailRow.textContent = `Email: ${data.email}`;
+            }
+        } catch (error) {
+            console.error('Error checking admin status:', error);
+            // Výchozí chování - skrýt email pokud selže kontrola
+            const emailRow = document.querySelector('#emailRow');
+            if (emailRow) emailRow.style.display = 'none';
+        }
+    }
+    </script>
 </body>
 </html>

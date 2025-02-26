@@ -226,6 +226,13 @@
       background-color: #AB2E58;
     }
     
+    #waveCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    }
+
     @media screen and (max-width: 600px) {
       .game-container {
         flex-direction: column;
@@ -366,6 +373,13 @@
 
   <div class="game-list" id="savedGamesList">
     <h2>Saved Games</h2>
+    <!-- Vyhledávací okénko -->
+    <input
+      type="text"
+      id="searchGames"
+      placeholder="Search games"
+      style="margin-bottom: 10px; padding: 8px; width: calc(100% - 30px);"
+    />
     <div>
       <button id="sortByName">Sort by Name</button>
       <button id="sortByDate">Sort by Date</button>
@@ -377,6 +391,7 @@
   </div>
 
   <!-- Načtení skriptu pro animované vlny -->
+  <canvas id="waveCanvas"></canvas>
   <script src="/static/js/waves.js"></script>
   <script>
     const userId = localStorage.getItem('userId');
@@ -394,14 +409,6 @@
     
     localStorage.removeItem('playedUUID');
 
-    // Načtení background.html obsahující canvas s vlnami
-    fetch('static/background1.html')
-      .then(response => response.text())
-      .then(data => {
-        document.body.insertAdjacentHTML('afterbegin', data);
-      })
-      .catch(error => console.error('Error loading HTML:', error));
-
     if (!userId) {
       window.location.href = '/login';
     } else {
@@ -413,29 +420,29 @@
     }
 
     // Na začátek scriptu po získání userId
-fetch(`/api/v1/users/${userId}`)
-  .then(response => response.json())
-  .then(userData => {
-    if (userData.ban) {
-      const banIndicator = document.createElement('span');
-      banIndicator.textContent = ' (BANNED)';
-      banIndicator.style.color = '#E31837';
-      banIndicator.style.marginLeft = '5px';
-      document.getElementById('nickname').appendChild(banIndicator);
-    }
-  })
-  .catch(error => console.error('Error checking ban status:', error));
+    fetch(`/api/v1/users/${userId}`)
+      .then(response => response.json())
+      .then(userData => {
+        if (userData.ban) {
+          const banIndicator = document.createElement('span');
+          banIndicator.textContent = ' (BANNED)';
+          banIndicator.style.color = '#E31837';
+          banIndicator.style.marginLeft = '5px';
+          document.getElementById('nickname').appendChild(banIndicator);
+        }
+      })
+      .catch(error => console.error('Error checking ban status:', error));
 
-// Načtení statistik
-fetch(`/api/v1/users/get_score/${userId}`)
-  .then(response => response.json())
-  .then(stats => {
-    document.getElementById('wins').textContent = stats.wins;
-    document.getElementById('draws').textContent = stats.draws;
-    document.getElementById('losses').textContent = stats.losses;
-    document.getElementById('elo').textContent = stats.rating;
-  })
-  .catch(error => console.error('Error loading stats:', error));
+    // Načtení statistik
+    fetch(`/api/v1/users/get_score/${userId}`)
+      .then(response => response.json())
+      .then(stats => {
+        document.getElementById('wins').textContent = stats.wins;
+        document.getElementById('draws').textContent = stats.draws;
+        document.getElementById('losses').textContent = stats.losses;
+        document.getElementById('elo').textContent = stats.rating;
+      })
+      .catch(error => console.error('Error loading stats:', error));
 
     document.getElementById('startLocalGame').addEventListener('click', () => {
       const player1 = document.getElementById('localPlayer1').value.trim();
@@ -568,7 +575,10 @@ fetch(`/api/v1/users/get_score/${userId}`)
     .then(response => response.json())
     .then(games => {
       const gamesTable = document.getElementById('gamesTable');
-      renderGameList(games);
+      // Uložíme původní seznam her
+      const originalGames = games;
+      // Inicializujeme filteredGames s původními hrami
+      let filteredGames = originalGames.slice();
 
       function renderGameList(games) {
         gamesTable.innerHTML = '';
@@ -625,14 +635,27 @@ fetch(`/api/v1/users/get_score/${userId}`)
         });
       }
 
+      // Počáteční vykreslení
+      renderGameList(filteredGames);
+
+      // Vyhledávání
+      document.getElementById('searchGames').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        filteredGames = originalGames.filter(game =>
+          game.name.toLowerCase().includes(searchTerm)
+        );
+        renderGameList(filteredGames);
+      });
+
+      // Třídicí tlačítka (nyní třídí aktuálně filtrovaný seznam)
       document.getElementById('sortByName').addEventListener('click', () => {
-        games.sort((a, b) => a.name.localeCompare(b.name));
-        renderGameList(games);
+        filteredGames.sort((a, b) => a.name.localeCompare(b.name));
+        renderGameList(filteredGames);
       });
 
       document.getElementById('sortByDate').addEventListener('click', () => {
-        games.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        renderGameList(games);
+        filteredGames.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        renderGameList(filteredGames);
       });
 
       document.getElementById('sortByDifficulty').addEventListener('click', () => {
@@ -643,8 +666,8 @@ fetch(`/api/v1/users/get_score/${userId}`)
           "Hard": 4,
           "The hardest": 5
         };
-        games.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
-        renderGameList(games);
+        filteredGames.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+        renderGameList(filteredGames);
       });
     })
     .catch(error => {
