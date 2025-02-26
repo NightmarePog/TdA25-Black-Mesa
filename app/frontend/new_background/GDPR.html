@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>piškorky-GDPR</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        h1 {
+            color: whitesmoke; /* Barva textu pro lepší viditelnost */
+            position: fixed;
+            top: 10vh;
+            left: auto;
+            font-size: 180px;
+            font-weight: bold;
+            font-family: 'Dosis';
+            transform: translate(100%, 30%);
+        }
+
+        .logo {
+            width: 500px;
+            height: auto;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="content"></div>
+    <div id="logo"></div>
+    <script>
+        // Načítání obsahu z background.html
+        fetch('background.html')
+        .then(response => response.text())
+        .then(data => {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = data; // Použití innerHTML pro vložení obsahu
+
+            // Spuštění skriptů
+            const scripts = contentDiv.getElementsByTagName('script');
+            for (let script of scripts) {
+                const newScript = document.createElement('script');
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            }
+        })
+        .catch(error => console.error('Chyba při načítání souboru:', error));
+
+        // Načítání externího SVG loga
+        fetch('picture/game_logo.svg')
+        .then(response => response.text())
+        .then(svg => {
+            const logoDiv = document.getElementById('logo');
+            logoDiv.innerHTML = svg;
+            logoDiv.querySelector('svg').classList.add('logo');
+        })
+        .catch(error => console.error('Chyba při načítání SVG souboru:', error));
+    </script>
+
+    <h1>GDPR</h1>
+</body>
+</html>
