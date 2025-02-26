@@ -1,18 +1,14 @@
-# TDA25-BLACK-MESA
-
+# ThinkTacToe - tvořeno ve spolupráci s Think Difrrent Academy
 ## Popis
-Tato webová aplikace umožňuje uživatelům hrát piškvorky:
-- **Lokálně**: Hráči mohou hrát na jednom zařízení.
-- **Multiplayer**: Hráči mohou hrát mezi sebou přes internet.
-- Každý tah se ukládá do uživatelského účtu.
-- Uložené hry lze později zobrazit nebo dohrát (nedohrané hry). Dohrané hry již nelze znovu rozehrát.
+naše hra ThinkTacToe je hra vytvořená ve spolupráci s Think Diffrent Academy za účelem popularizování hraní piškvorek
+naše aplikace má nadčasové funkce jako Matchmaking, ELO a mnohem víc
 
 ### Guest účet
-- Guest uživatel má stejné funkce jako registrovaný uživatel.
-- **Omezení**: Pokud zavře všechny stránky webové aplikace a do 15 sekund se nevrátí, jeho účet bude automaticky smazán, až znovu vejde na webovou stránku.
+- Guest účet může hrát přátelské hry s ostatními hráči!
+- **Omezení**: je to pouze dočasný uživatel a po odchodu ze stránky veškerá data jsou smažána
 
 ### Registrovaný uživatel
-- Registrovaný uživatel má trvalý účet, který není smazán (pokud nevymaže local storage).
+- registrovaný uživatel je uživatel který se k nám přihlásil a má například možností jako staty nebo Ranked hry
 - Přihlášení je trvalé, dokud se uživatel ručně neodhlásí.
 
 ---
@@ -38,6 +34,7 @@ Tato webová aplikace umožňuje uživatelům hrát piškvorky:
 4. `/game`: Stránka pro lokální hru (na jednom zařízení).
 5. `/game/<uuid>`: Zobrazení nebo dohrání uložené hry.
 6. `/multiplayer-game/<uuid>`: Multiplayer hra nebo sledování průběhu, pokud už jsou 2 hrající hráči.
+7. `/list`: list všech hráčů co jsou registrovaní
 
 ### Pravidla přesměrování:
 - Nepřihlášený uživatel je automaticky přesměrován na `/login`.
@@ -101,3 +98,4 @@ local application address: `http://127.0.0.1:8080`
 [task](https://tourde.app/zadani)
 [Repository](https://github.com/NightmarePog/TdA25-Black-Mesa)
 
+# Děkujeme Tour De App a jeho týmu za možnost zůčastnit se této soutěže
