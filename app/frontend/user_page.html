@@ -27,8 +27,12 @@
       text-align: center;
       background-color: #0070BB;
       padding: 20px;
-      border-radius: 8px;
+      border-radius: 40px;
       color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .profile img {
       width: 400px;
@@ -36,6 +40,7 @@
       border-radius: 10%;
       margin-bottom: 10px;
       border: 2px solid #ccc;
+
     }
     .stats-table {
       width: 100%;
@@ -193,7 +198,6 @@
       </script>
       <h2>{{ user_info.username }}</h2>
       <table class="stats-table">
-        <tr><td><strong>Email:</strong></td><td>{{ user_info.email }}</td></tr>
         <tr><strong>Plays since: {{ user_info.createdAt[:10] | replace('-', '.') }}</strong></tr>
         <tr><td><strong>Wons:</strong></td><td>{{ user_info.wins }}</td></tr>
         <tr><td><strong>Draws:</strong></td><td>{{ user_info.draws }}</td></tr>
@@ -213,59 +217,52 @@
             <tr>
               <td class="game-info" style="width:60%;">
                 <p><strong>UUID:</strong> {{ game.uuid }}</p>
-                <p><strong>Vytvořeno:</strong> {{ game.createdAt }}</p>
-                <p><strong>Aktualizováno:</strong> {{ game.updatedAt }}</p>
-                <p><strong>Obtížnost:</strong> {{ game.difficulty }}</p>
-                <p><strong>Stav hry:</strong> {{ game.gameState }}</p>
-                <p><strong>Kód hry:</strong> {{ game.code }}</p>
+                <p><strong>Created:</strong> {{ game.createdAt[:10] | replace('-', '.') }}</p>
+                <p><strong>Updated:</strong> {{ game.updatedAt }}</p>
+                <p><strong>Difficulty:</strong> {{ game.difficulty }}</p>
+                <p><strong>Game state:</strong> {{ game.gameState }}</p>
                 <p>
-                  <strong>Vyhrál:</strong>
+                  <strong>Winner:</strong>
                   {% if game.winnerId %}
+                    {% set winner_found = false %}
                     {% for player in game.players %}
                       {% if player.user_id == game.winnerId %}
                         {{ player.username }} (UUID: {{ player.user_id }})
+                        {% set winner_found = true %}
                       {% endif %}
                     {% endfor %}
+                    {% if not winner_found %}Není určen{% endif %}
                   {% else %}
                     Není určen
                   {% endif %}
                 </p>
-                <p><strong>Hráči:</strong></p>
+                <p><strong>Players:</strong></p>
                 <ul>
                   {% for player in game.players %}
                     <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
                   {% endfor %}
-                {% else %}
-                  Not determined
-                {% endif %}
-              </p>
-              <p><strong>Players:</strong></p>
-              <ul>
-                {% for player in game.players %}
-                  <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
-                {% endfor %}
-              </ul>
-            </td>
-            <td class="game-board" style="width:40%;">
-              <table class="board-table">
-                {% for row in game.board %}
-                <tr>
-                  {% for cell in row %}
-                  <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
-                    {{ cell }}
-                  </td>
+                </ul>
+              </td>
+              <td class="game-board" style="width:40%;">
+                <table class="board-table">
+                  {% for row in game.board %}
+                  <tr>
+                    {% for cell in row %}
+                    <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
+                      {{ cell }}
+                    </td>
+                    {% endfor %}
+                  </tr>
                   {% endfor %}
-                </tr>
-                {% endfor %}
-              </table>
-            </td>
-          </tr>
-        </table>
-      </div>
-      {% endfor %}
-    {% else %}
-      <p>No saved games.</p>
-    {% endif %}
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>No saved games.</p>
+      {% endif %}
   </div>
 
   <script>
