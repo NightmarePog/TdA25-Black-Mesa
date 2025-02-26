@@ -8,17 +8,18 @@
     <style>
         body {
             margin: 0;
-            background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
-            overflow: hidden;
+            background: linear-gradient(to right, #E31837 40%, #0070BB 80%);
+            overflow-y: scroll;
+            height: auto;
         }
 
         canvas {
             display: block;
         }
 
-        h1 {
-            color: whitesmoke; /* Barva textu pro lepší viditelnost */
-            position: fixed;
+        .main_name {
+            color: whitesmoke;
+            position: absolute;
             top: 10vh;
             left: auto;
             font-size: 180px;
@@ -34,12 +35,24 @@
             top: 20px;
             left: 20px;
         }
+
+        .text {
+            overflow-y: auto;
+            position: absolute;
+            top: 110vh;
+            width: 100%;
+            height: 100vh;
+            color: black;
+        }
+
     </style>
 </head>
 
 <body>
     <div id="content"></div>
     <div id="logo"></div>
+    <div id="text"></div> 
+
     <script>
         // Načítání obsahu z background.html
         fetch('background.html')
@@ -67,8 +80,24 @@
             logoDiv.querySelector('svg').classList.add('logo');
         })
         .catch(error => console.error('Chyba při načítání SVG souboru:', error));
+
+        
+        fetch('GDPR_text.html')
+        .then(response => response.text())
+        .then(data => {
+            const contentDiv = document.getElementById('text');
+            contentDiv.innerHTML = data;
+        })
+        .catch(error => console.error('Chyba při načítání souboru:', error));
+
+
+
+        document.body.style.height = '200vh'; /* Zvýšení výšky těla stránky pro umožnění rolování */
+
+
     </script>
 
-    <h1>GDPR</h1>
+    <h1 class="main_name">GDPR</h1>
+
 </body>
 </html>
