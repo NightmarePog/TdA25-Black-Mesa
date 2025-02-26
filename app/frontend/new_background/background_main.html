@@ -6,6 +6,7 @@
     <title>background_main</title>
     <style>
         body {
+            font-family: 'Dosis';
             background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
             margin: 0;
             overflow: hidden;
@@ -38,22 +39,19 @@
         }
 
         .floating-bar {
+            display: flex;
             position: absolute; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
             top: 3vh; /* Vzdálenost od horního okraje */
             left: 15vw; /* Vzdálenost od levého okraje */
             right: 15vw; /* Vzdálenost od pravého okraje */
-            height: 10vh; /* Dvakrát vyšší než původní */
-            line-height: 60px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
-            background-color: #FFFFFF; /* Černá barva */
-            color: #000000; /* Bílé písmo */
-            text-align: center;
-            padding: 0 10px; /* Vodorovné odsazení */
-            font-family: Arial, sans-serif;
-            font-size: 15px; /* Nastavení velikosti písma na 15px */
+            height: 8vh; /* Dvakrát vyšší než původní */
+            line-height: 30px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
+            background-color: #395A9A; /* Černá barva */
             border-radius: 20px; /* Zakulacené rohy */
             z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
             box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
             border: 2px solid #000000;
+            display: flex;
         }
 
         input[type="nickname"] {
@@ -66,6 +64,8 @@
             top: 29vh;
             position: absolute;
             transform: translate(50%, 50%);
+            text-align: center;
+            font-size: large;
         }
 
         .play_button {
@@ -82,7 +82,7 @@
 
             align-items: center;
             appearance: none;
-            background-clip: padding-box;
+            background-clip: padd;
             background-color: initial;
             background-image: none;
             border-style: none;
@@ -184,6 +184,40 @@
             opacity: .24;
         }
 
+        .button-wrapper {
+            flex: 1; /* Každé tlačítko má stejnou velikost */
+            display: flex;
+        }
+
+
+        .bar-button {
+            flex: 1; /* Každé tlačítko vyplní celý svůj wrapper */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            border-right: 2px ; /* Čára mezi tlačítky */
+            }
+
+            .bar-button:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .bar-button img {
+                width: 10vw;  /* Šířka obrázku bude 10% šířky obrazovky */
+                height: auto; /* Výška obrázku se automaticky přizpůsobí šířce */
+                max-width: 60px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
+                max-height: 60px; /* Maximální výška obrázku je 60px */
+                margin-right: 8px;
+                vertical-align: middle;
+                
+            }
 
 
     </style>
@@ -192,18 +226,27 @@
     <img src="picture/game_logo.svg" class="logo" alt="Logo">
     <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
     
-    <div class="floating-bar"></div>
+    <div class="floating-bar">
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">PLAY AS GUEST
+                <img src="picture/zarivka_idea_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">LOG IN
+                <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">SIGN UP
+                <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
+            </a>
+        </div>
+    </div>
+    
     
     <a href="https://www.example.com" target="_blank">
         <button class="play_button" type="button">PLAY AS GUEST</button>
-    </a>
-    
-    <a href="https://www.example.com" target="_blank">
-        <button class="LOG_IN" type="button">LOG iN</button>
-    </a>
-    
-    <a href="https://www.example.com" target="_blank">
-        <button class="SING_UP" type="button">SING UP</button>
     </a>
     <input type="nickname" id="nickname" placeholder="Nickname" required>
 
