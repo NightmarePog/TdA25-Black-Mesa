@@ -15,6 +15,10 @@ def handle_join_game(data):
         emit('error', {'message': 'You are banned.'}, room=request.sid)
         return
     
+    if game.isRanked and str(User.query.get(data['user_id']).login_by) == "0":
+        emit('error', {'message': 'This game is for registered players only'}, room=request.sid)
+        return
+    
     players_list = json.loads(game.players) if game.players else []
     
     try:

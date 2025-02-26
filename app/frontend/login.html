@@ -12,7 +12,7 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Dosis', sans-serif;
-            background-color: #F6F6F6;
+            background-color: #ffffff;
         }
 
         #waveCanvas {
@@ -24,19 +24,33 @@
 
         .login-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: center;
             background-color: white;
             padding: 20px;
             border-radius: 60px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 600px;
-            height: 350px;
-            margin-top: 15vh;
+            height: 400px;
+            margin-top: 10vh;
             margin-left: auto;
             margin-right: auto;
             position: relative;
             z-index: 1;
+        }
+
+        .game-logo {
+            width: 800px;
+            display: block;
+            margin: 20px auto;
+            margin-top: 20px;
+        }
+
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
         }
 
         .form {
@@ -69,7 +83,7 @@
         }
 
         button:hover {
-            background-color: #395A9A;
+            background-color: #2C4376;
         }
 
         .register-button {
@@ -86,29 +100,29 @@
     <canvas id="waveCanvas"></canvas>
     
     <div class="login-container">
-        <div class="form">
-            <h2>Guest Login</h2>
-            <form id="guestForm">
-                <input type="text" id="nickname" placeholder="Nickname" required>
-                <button type="submit">Play as Guest</button>
-            </form>
-        </div>
-        <div class="form">
-            <h2>Login</h2>
-            <form id="loginForm">
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit">Login</button>
-            </form>
-            <button class="register-button" id="registerButton">Register</button>
+        <div class="form-container">
+            <div class="form">
+                <h2>Guest Login</h2>
+                <form id="guestForm">
+                    <input type="text" id="nickname" placeholder="Nickname" required>
+                    <button type="submit">Play as Guest</button>
+                </form>
+            </div>
+            <div class="form">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <button class="register-button" id="registerButton">Register</button>
+            </div>
         </div>
     </div>
 
     <script src="/static/js/waves.js"></script>
     <script>
-        // Wave animation code
-
-        // Původní login funkcionalita
+        // Kontrola, zda je uživatel již přihlášen
         const userIdStorage = localStorage.getItem('userId');
         if (userIdStorage) {
             window.location.href = '/menu';

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uživatelský profil</title>
+  <title>User Profile</title>
   <style>
     body {
       font-family: 'Dosis', sans-serif;
@@ -90,9 +90,94 @@
       font-size: 12px;
       padding: 2px;
     }
+    .game-info p, .game-info ul {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+    #waveCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .header {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nickname-box {
+      display: flex;
+      align-items: center;
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nickname-box:hover {
+      background-color: #080808;
+    }
+
+    .menu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #FFFFFF;
+      color: #1A1A1A;
+      border: 1px solid #CCC;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .nickname-box:hover .menu {
+      display: block;
+    }
+
+    .menu button {
+      background-color: #E31837;
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .menu button:hover {
+      background-color: #AB2E58;
+    }
+
+    @media screen and (max-width: 600px) {
+      .header {
+        top: 10px;
+        right: 10px;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="header">
+    <div class="nickname-box">
+      <span id="nickname">Loading...</span>
+      <div class="menu">
+        <button id="logout">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
   <div class="container">
     <!-- Levý panel: Profil hráče -->
     <div class="profile">
@@ -150,29 +235,85 @@
                   {% for player in game.players %}
                     <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
                   {% endfor %}
-                </ul>
-              </td>
-              <td class="game-board" style="width:40%;">
-                <table class="board-table">
-                  {% for row in game.board %}
-                  <tr>
-                    {% for cell in row %}
-                    <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
-                      {{ cell }}
-                    </td>
-                    {% endfor %}
-                  </tr>
+                {% else %}
+                  Not determined
+                {% endif %}
+              </p>
+              <p><strong>Players:</strong></p>
+              <ul>
+                {% for player in game.players %}
+                  <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
+                {% endfor %}
+              </ul>
+            </td>
+            <td class="game-board" style="width:40%;">
+              <table class="board-table">
+                {% for row in game.board %}
+                <tr>
+                  {% for cell in row %}
+                  <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
+                    {{ cell }}
+                  </td>
                   {% endfor %}
-                </table>
-              </td>
-            </tr>
-          </table>
-        </div>
-        {% endfor %}
-      {% else %}
-        <p>Žádné uložené hry.</p>
-      {% endif %}
-    </div>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p>No saved games.</p>
+    {% endif %}
   </div>
+
+  <script>
+      const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const isGuest = localStorage.getItem('isGuest') === 'true';
+    
+    document.getElementById('logout').addEventListener('click', () => {
+      if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+      localStorage.clear();
+      window.location.href = '/login';
+    });
+
+    document.getElementById('nickname').textContent = username || 'Unknown User';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Kontrola jestli jsme na profilové stránce
+        if (document.querySelector('h1').textContent === 'User Profile') {
+            checkAdminStatus();
+            updateLoginByText();
+        }
+    });
+    
+    async function checkAdminStatus() {
+        try {
+            const response = await fetch('/api/v1/users/isAdmin', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            // Skrytí emailu pro ne-adminy
+            const emailRow = document.querySelector('#emailRow');
+            if (emailRow && !data.isAdmin) {
+                emailRow.style.display = 'none';
+            }else {
+                emailRow.textContent = `Email: ${data.email}`;
+            }
+        } catch (error) {
+            console.error('Error checking admin status:', error);
+            // Výchozí chování - skrýt email pokud selže kontrola
+            const emailRow = document.querySelector('#emailRow');
+            if (emailRow) emailRow.style.display = 'none';
+        }
+    }
+    </script>
 </body>
 </html>

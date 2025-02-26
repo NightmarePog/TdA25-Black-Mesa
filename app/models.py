@@ -4,6 +4,7 @@ from uuid import uuid4
 from datetime import datetime
 import hashlib
 import secrets
+from sqlalchemy.ext.mutable import MutableList
 
 class Game(db.Model):
     uuid = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
@@ -38,7 +39,7 @@ class User(db.Model):
     email = db.Column(db.String(100), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=True)
     saved_games = db.Column(db.JSON, default={})
-    tokens = db.Column(db.JSON, default=[])
+    tokens = db.Column(MutableList.as_mutable(db.JSON), default=[])
     wins = db.Column(db.Integer, default=0)
     draws = db.Column(db.Integer, default=0)
     losses = db.Column(db.Integer, default=0)
