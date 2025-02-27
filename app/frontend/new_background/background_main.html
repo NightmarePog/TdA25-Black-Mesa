@@ -46,11 +46,12 @@
             right: 15vw; /* Vzdálenost od pravého okraje */
             height: 8vh; /* Dvakrát vyšší než původní */
             line-height: 30px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
-            background-color: #395A9A; /* Černá barva */
+            background-color: #FFFFFF; /* Černá barva */
             border-radius: 20px; /* Zakulacené rohy */
             z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
             box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
             border: 2px solid #000000;
+            font-family: 'Dosis';
         }
 
         input[type="nickname"] {
@@ -65,6 +66,7 @@
             transform: translate(50%, 50%);
             text-align: center;
             font-size: large;
+            font-family: 'Dosis';
         }
 
         .play_button {
@@ -78,6 +80,7 @@
             left: 65vw;
             top: 40vh;
             transform: translate(50%, 50%);
+            font-family: 'Dosis';
 
             align-items: center;
             appearance: none;
@@ -86,7 +89,7 @@
             background-image: none;
             border-style: none;
             box-sizing: border-box;
-            color: #fff;
+            color: #ffffff;
             cursor: pointer;
             display: inline-block;
             flex-direction: row;
@@ -202,18 +205,20 @@
             transition: background-color 0.3s ease;
             text-transform: uppercase;
             border-right: 2px ; /* Čára mezi tlačítky */
+            font-family: 'Dosis';
             }
 
             .bar-button:hover {
-                background-color: rgba(0, 0, 0, 0.1);
+                background-color: rgba(0, 0, 0, 0.3);
             }
 
             .bar-button img {
                 width: 10vw;  /* Šířka obrázku bude 10% šířky obrazovky */
                 height: auto; /* Výška obrázku se automaticky přizpůsobí šířce */
-                max-width: 60px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
-                max-height: 60px; /* Maximální výška obrázku je 60px */
+                max-width: 50px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
+                max-height: 50px; /* Maximální výška obrázku je 60px */
                 margin-right: 8px;
+                margin-left: 10px;
                 vertical-align: middle;
                 
             }
