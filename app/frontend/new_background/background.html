@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animated Wave Pattern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         body {
             background: linear-gradient(to right, #E31837 40%, #0070BB 80%);
             margin: 0;
             overflow: hidden;
             z-index: 1;
+            font-family: "Dosis";
         }
 
         canvas {
@@ -50,6 +53,7 @@
             z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
             box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
             border: 2px solid #000000;
+            font-family: "Dosis";
         }
 
         .button-wrapper {
@@ -71,6 +75,7 @@
             transition: background-color 0.3s ease;
             text-transform: uppercase;
             border-right: 2px ; /* Čára mezi tlačítky */
+            font-family: "Dosis";
             }
 
             .bar-button:hover {
@@ -78,11 +83,12 @@
             }
 
             .bar-button img {
-                width: 10vw;  /* Šířka obrázku bude 10% šířky obrazovky */
-                height: auto; /* Výška obrázku se automaticky přizpůsobí šířce */
-                max-width: 60px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
-                max-height: 60px; /* Maximální výška obrázku je 60px */
+                width: auto;  /* Šířka obrázku bude 10% šířky obrazovky */
+                height: 5vh; /* Výška obrázku se automaticky přizpůsobí šířce */
+                max-width: 50px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
+                max-height: 50px; /* Maximální výška obrázku je 60px */
                 margin-right: 8px;
+                margin-left: 10px;
                 vertical-align: middle;
                 
             }
