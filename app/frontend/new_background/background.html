@@ -6,7 +6,7 @@
     <title>Animated Wave Pattern</title>
     <style>
         body {
-            background: linear-gradient(to right, #E31837 20%, #0070BB 80%);
+            background: linear-gradient(to right, #E31837 40%, #0070BB 80%);
             margin: 0;
             overflow: hidden;
             z-index: 1;
@@ -33,27 +33,59 @@
             position: absolute;
             top: 90vh; /* 5% výšky okna */
             left: 78vw; /* 5% šířky okna */
-            z-index: 0;
+            z-index: 2;
             transform: translate(100%, 0%);
         }
 
         .floating-bar {
-            position: fixed; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
+            display: flex;
+            position: absolute; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
             top: 3vh; /* Vzdálenost od horního okraje */
             left: 15vw; /* Vzdálenost od levého okraje */
             right: 15vw; /* Vzdálenost od pravého okraje */
-            height: 10vh; /* Dvakrát vyšší než původní */
-            line-height: 60px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
-            background-color: #000000; /* Černá barva */
-            color: #FFFFFF; /* Bílé písmo */
-            text-align: center;
-            padding: 0 10px; /* Vodorovné odsazení */
-            font-family: Arial, sans-serif;
-            font-size: 15px; /* Nastavení velikosti písma na 15px */
-            border-radius: 15px; /* Zakulacené rohy */
+            height: 8vh; /* Dvakrát vyšší než původní */
+            line-height: 30px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
+            background-color: #395A9A; /* Černá barva */
+            border-radius: 20px; /* Zakulacené rohy */
             z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
             box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
+            border: 2px solid #000000;
         }
+
+        .button-wrapper {
+            flex: 1; /* Každé tlačítko má stejnou velikost */
+            display: flex;
+        }
+
+
+        .bar-button {
+            flex: 1; /* Každé tlačítko vyplní celý svůj wrapper */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            border-right: 2px ; /* Čára mezi tlačítky */
+            }
+
+            .bar-button:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .bar-button img {
+                width: 10vw;  /* Šířka obrázku bude 10% šířky obrazovky */
+                height: auto; /* Výška obrázku se automaticky přizpůsobí šířce */
+                max-width: 60px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
+                max-height: 60px; /* Maximální výška obrázku je 60px */
+                margin-right: 8px;
+                vertical-align: middle;
+                
+            }
 
 
     </style>
@@ -61,7 +93,24 @@
 <body>
     <img src="picture/game_logo.svg" class="logo" alt="Logo">
     <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
-    <div class="floating-bar"></div>
+    <div class="floating-bar">
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">PLAY AS GUEST
+                <img src="picture/zarivka_idea_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">LOG IN
+                <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">SIGN UP
+                <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
+            </a>
+        </div>
+    </div>
+    
 
     <canvas id="waveCanvas"></canvas>
     <script>
@@ -117,7 +166,7 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             // Tmavší barvy pro vlny dále v pozadí
             gradient.addColorStop(0, `rgba(255, 255, 255, ${(index + 1) * 0.2})`);  // Světlejší
-            gradient.addColorStop(1, `rgba(230, 230, 230, ${(index + 1) * 0.4})`);  // Tmavší
+            gradient.addColorStop(1, `rgba(255, 255, 255, ${(index + 1) * 0.4})`);  // Tmavší
 
             ctx.fillStyle = gradient;
             ctx.beginPath();
