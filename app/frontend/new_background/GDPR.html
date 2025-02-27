@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>piškorky-GDPR</title>
+    <title>Piškorky - GDPR</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -16,89 +16,90 @@
 
         canvas {
             display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transition: top 0.3s ease-out; /* Efekt posunu při skrolování */
+            z-index: -10;
         }
 
         .main_name {
             color: whitesmoke;
-            position: absolute;
-            top: 10vh;
-            height: auto;
-            width: auto;
-            left: 10vw;
+            position: absolute; /* Absolutní pozice pro centrování */
+            top: 50%; /* Posune horní okraj na 50 % výšky stránky */
+            left: 50%; /* Posune levý okraj na 50 % šířky stránky */
+            transform: translate(-50%, -50%); /* Posune text zpět o polovinu své šířky a výšky */
             font-size: 180px;
             font-weight: bold;
-            font-family: 'Dosis';
-            transform: translate(100%, 30%);
+            font-family: 'Dosis', sans-serif;
+            margin: 0; /* Odstraní výchozí okraje */
+            padding: 0; /* Odstraní výchozí padding */
+            white-space: nowrap; /* Zabraňuje zalomení textu */
         }
 
         .logo {
             width: 500px;
             height: auto;
-            position: absolute;
+            position: relative;
             top: 20px;
             left: 20px;
         }
 
         .text {
             overflow-y: auto;
-            position: absolute;
-            top: 120vh; /* Změněno z 110vh */
+            position: relative;
+            top: 100vh; /* Přesunutí na druhou stránku */
             width: 100%;
-            height: 100vh;
+            height: auto; /* Více místa pro text */
             color: black;
-            padding-top: 20px; /* Přidáno odsazení nahoře */
+            padding: 20px;
+            z-index: 10;
         }
-
-
+        
     </style>
 </head>
 
 <body>
-    <div id="content"></div>
-    <div id="logo"></div>
-    <div id="text"></div> 
+    <canvas id="backgroundCanvas"></canvas> <!-- Canvas pro animace -->
+
+    <div class="wrapper">
+        <div id="content"></div>  <!-- Obsah background.html -->
+        <div id="logo"></div>     <!-- SVG logo -->
+        <div class="text" id="text"></div> <!-- GDPR text -->
+    </div>
 
     <script>
         // Načítání obsahu z background.html
         fetch('background.html')
-        .then(response => response.text())
-        .then(data => {
-            const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = data; // Použití innerHTML pro vložení obsahu
+            .then(response => {
+                if (!response.ok) throw new Error('Soubor background.html nenalezen');
+                return response.text();
+            })
+            .then(data => {
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = data;
 
-            // Spuštění skriptů
-            const scripts = contentDiv.getElementsByTagName('script');
-            for (let script of scripts) {
-                const newScript = document.createElement('script');
-                newScript.textContent = script.textContent;
-                document.body.appendChild(newScript);
-            }
-        })
-        .catch(error => console.error('Chyba při načítání souboru:', error));
+                // Správné spuštění skriptů
+                contentDiv.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.error('Chyba při načítání background.html:', error));
 
-        // Načítání externího SVG loga
-        fetch('picture/game_logo.svg')
-        .then(response => response.text())
-        .then(svg => {
-            const logoDiv = document.getElementById('logo');
-            logoDiv.innerHTML = svg;
-            logoDiv.querySelector('svg').classList.add('logo');
-        })
-        .catch(error => console.error('Chyba při načítání SVG souboru:', error));
-
-        
+        // Načítání GDPR textu
         fetch('GDPR_text.html')
-        .then(response => response.text())
-        .then(data => {
-            const contentDiv = document.getElementById('text');
-            contentDiv.innerHTML = data;
-        })
-        .catch(error => console.error('Chyba při načítání souboru:', error));
-
-
-
-        document.body.style.height = '200vh'; /* Zvýšení výšky těla stránky pro umožnění rolování */
-
+            .then(response => {
+                if (!response.ok) throw new Error('Soubor GDPR_text.html nenalezen');
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('text').innerHTML = data;
+            })
+            .catch(error => console.error('Chyba při načítání GDPR_text.html:', error));
 
     </script>
 

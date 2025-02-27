@@ -33,7 +33,7 @@
         .logo_2 {
             width: 10vw; /* 10% šířky okna */
             height: auto;
-            position: absolute;
+            position: fixed;
             top: 90vh; /* 5% výšky okna */
             left: 78vw; /* 5% šířky okna */
             z-index: 2;
@@ -99,23 +99,6 @@
 <body>
     <img src="picture/game_logo.svg" class="logo" alt="Logo">
     <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
-    <div class="floating-bar">
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">PLAY AS GUEST
-                <img src="picture/zarivka_idea_cerne.svg" alt="Icon">
-            </a>
-        </div>
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">LOG IN
-                <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
-            </a>
-        </div>
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">SIGN UP
-                <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
-            </a>
-        </div>
-    </div>
 
 
     <canvas id="waveCanvas"></canvas>
