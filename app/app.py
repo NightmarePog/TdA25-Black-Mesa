@@ -33,9 +33,9 @@ def create_app():
         db.create_all()
         a, b = User.register({
             'loginBy': 1,
-            'username': 'admin',
-            'email': "admin@admin.com",
-            'password': "admin"})
+            'username': 'TdA',
+            'email': "tda@scg.cz",
+            'password': "StudentCyberGames25!"})
         
         for i in range(61):
             User.register({
@@ -46,6 +46,12 @@ def create_app():
                 
         print(a, b)
         print("Database initialized")
+
+    from game_routes import matchmaking_background_task
+    import threading
+    thread = threading.Thread(target=matchmaking_background_task, args=(app,))
+    thread.daemon = True
+    thread.start()
 
     return app
 

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Dosis', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      color: #1A1A1A;
+      min-height: 100vh;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .header {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nickname-box {
+      display: flex;
+      align-items: center;
+      background-color: rgba(26, 26, 26, 0.8);
+      color: #FFFFFF;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s ease;
+    }
+
+    .search-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      padding: 20px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .loading-animation {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 20px;
+    }
+
+    .loading-circle {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #E31837;
+      border-radius: 50%;
+      animation: spin 1.5s linear infinite;
+    }
+
+    .search-status {
+      color: #FFFFFF;
+      font-size: 24px;
+      text-align: center;
+      text-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+      margin: 20px 0;
+    }
+
+    .cancel-button {
+      background-color: #E31837;
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+    }
+
+    .cancel-button:hover {
+      background-color: #AB2E58;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(227, 24, 55, 0.4);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .search-status {
+        font-size: 20px;
+      }
+      
+      .cancel-button {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="nickname-box">
+      <span id="nickname">Loading...</span>
+    </div>
+  </div>
+
+  <div class="search-container">
+    <div class="loading-animation">
+      <div class="loading-circle"></div>
+    </div>
+    <div class="search-status">Searching for opponents...</div>
+    <button class="cancel-button" id="cancelSearch">Cancel Search</button>
+  </div>
+
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
+  <script>
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    const isGuest = localStorage.getItem('isGuest') === 'true';
+    var deleted = false;
+
+    if (!userId) {
+      window.location.href = '/login';
+    } else {
+      document.getElementById('nickname').textContent = username || 'Unknown Player';
+    }
+
+    // Initialize WebSocket connection
+    let socket;
+    let searchTimeout;
+
+    if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
+      handleLogout();
+    }
+
+    function handleLogout() {
+        function deleteGuestAccount() {
+        fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+            .then(response => {
+            if (response.ok) {
+                console.log('Guest account deleted.');
+            } else {
+                console.error('Failed to delete guest account.');
+            }
+            })
+            .catch(err => console.error('Error deleting guest account:', err));
+        }
+      if (isGuest) {
+        deleteGuestAccount();
+      }
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login';
+    }
+
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('time_from_leaving', Date.now());
+    });
+
+    function connectToMatchmaking() {
+      // Send initial request to join queue
+      fetch('/api/v1/games/findgame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to join queue');
+        return response.json();
+      })
+      .then(data => {
+        /* if (data.matchFound) {
+          window.location.href = `/multiplayer-game/${data.gameId}`;
+        } else {
+          // Start polling for match status
+          startPolling(); 
+        }*/
+      })
+      .catch(error => {
+        /*
+        console.error('Error:', error);
+        alert('Failed to join matchmaking queue');
+        window.location.href = '/game';*/
+      });
+    }
+
+    function startPolling() {
+      searchTimeout = setInterval(() => {
+        fetch(`/api/v1/games/check-match/${userId}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.gameUuid) {
+              clearInterval(searchTimeout);
+              window.location.href = `/multiplayer-game/${data.gameUuid}`;
+            }
+          });
+      }, 2000); // Check every 5 seconds
+    }
+
+    document.getElementById('cancelSearch').addEventListener('click', () => {
+      clearInterval(searchTimeout);
+      fetch('/api/v1/games/findgame', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      })
+      .then(() => {
+        deleted = true;
+        window.location.href = '/menu';
+      })
+      .catch(error => {
+        console.error('Error canceling search:', error);
+        alert('Failed to cancel search');
+      });
+    });
+
+    // Initial connection
+    connectToMatchmaking();
+    startPolling();
+
+    window.addEventListener('beforeunload', () => {
+      if (!deleted) {
+        fetch('/api/v1/games/findgame', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId })
+        })
+        .catch(error => {
+          console.error('Error canceling search:', error);
+          alert('Failed to cancel search');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -155,6 +155,13 @@
       background-color: #724479;
     }
 
+    #waveCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+  }
+
     @media screen and (max-width: 600px) {
       .user-list {
         margin: 10px;
@@ -204,14 +211,13 @@
     </div>
   </div>
 
-  <h1>User List</h1>
+  <h1>User Management</h1>
 
-  <!-- Vyhledávací pole a filtr -->
   <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Hledat uživatele (username nebo UUID)...">
-    <button id="searchBtn" class="profile-btn">Vyhledat</button>
-    <button id="clearSearch" class="profile-btn">Zobrazit všechny</button>
-    <button id="showBanned" class="filter-btn">Zobrazit zabanované</button>
+    <input type="text" id="searchInput" placeholder="Search users (username or UUID)...">
+    <button id="searchBtn" class="profile-btn">Search</button>
+    <button id="clearSearch" class="profile-btn">Show all</button>
+    <button id="showBanned" class="filter-btn">Show Banned</button>
   </div>
 
   <div class="user-list">
@@ -219,8 +225,8 @@
       <thead>
         <tr>
           <th>Username</th>
-          <th>Zabanován</th>
-          <th>Akce</th>
+          <th>Banned</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody id="usersBody"></tbody>
@@ -228,21 +234,43 @@
   </div>
 
   <div class="load-more">
-    <button id="prevPage">Předchozí</button>
-    <button id="nextPage">Další</button>
+    <button id="prevPage">Previous</button>
+    <button id="nextPage">Next</button>
   </div>
 
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
   <script>
     let currentMin = 1;
     let currentMax = 50;
     const itemsPerPage = 50;
-    let isSearching = false; // Příznak, zda právě probíhá vyhledávání
+    let isSearching = false;
+    let isAdminUser = false;
 
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const isGuest = localStorage.getItem('isGuest') === 'true';
 
-    document.getElementById('nickname').textContent = username || 'Unknown Player';
+    document.getElementById('nickname').textContent = username || 'Unknown User';
+
+    fetch('/api/v1/users/isAdmin', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        isAdminUser = data.isAdmin;
+        if (!isAdminUser) {
+          document.getElementById('showBanned').style.display = 'none';
+        }
+        loadUsers(currentMin, currentMax);
+      })
+      .catch(error => {
+        console.error('Error checking admin status:', error);
+        loadUsers(currentMin, currentMax);
+      });
 
     function renderUsers(users) {
       const tbody = document.getElementById('usersBody');
@@ -251,11 +279,13 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${user.username}</td>
-          <td>${user.ban ? 'Ano' : 'Ne'}</td>
+          <td>${user.ban ? 'Yes' : 'No'}</td>
           <td>
-            <button onclick="viewProfile('${user.uuid}')" class="profile-btn">Vidět profil</button>
-            <button onclick="deleteUser('${user.uuid}')" class="profile-btn">Smazat</button>
-            <button onclick="banUser('${user.uuid}')" class="profile-btn">${user.ban ? 'Odbanovat' : 'Zabanovat'}</button>
+            <button onclick="viewProfile('${user.uuid}')" class="profile-btn">View Profile</button>
+            ${isAdminUser ? `
+              <button onclick="deleteUser('${user.uuid}')" class="profile-btn">Delete</button>
+              <button onclick="banUser('${user.uuid}')" class="profile-btn">${user.ban ? 'Unban' : 'Ban'}</button>
+            ` : ''}
           </td>
         `;
         tbody.appendChild(row);
@@ -269,15 +299,10 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          min: min,
-          max: max
-        })
+        body: JSON.stringify({ min, max })
       })
       .then(response => response.json())
-      .then(data => {
-        renderUsers(data.users);
-      })
+      .then(data => renderUsers(data.users))
       .catch(error => {
         console.error('Error loading users:', error);
         alert('Failed to load users');
@@ -291,33 +316,25 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ query: query })
+        body: JSON.stringify({ query })
       })
       .then(response => response.json())
-      .then(data => {
-        renderUsers(data.users);
-      })
+      .then(data => renderUsers(data.users))
       .catch(error => {
-        console.error('Error searching users:', error);
-        alert('Failed to search users');
+        console.error('Search error:', error);
+        alert('Search failed');
       });
     }
 
-    // Nová funkce načte všechny uživatele a následně vyfiltruje pouze ty zabanované
     function loadBannedUsers() {
-      fetch('/api/v1/users/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+      fetch('/api/v1/users/')
       .then(response => response.json())
       .then(data => {
         const bannedUsers = data.filter(user => user.ban);
         renderUsers(bannedUsers);
       })
       .catch(error => {
-        console.error('Error loading banned users:', error);
+        console.error('Banned users load error:', error);
         alert('Failed to load banned users');
       });
     }
@@ -327,33 +344,33 @@
     }
 
     function deleteUser(userId) {
-      // Implementace smazání uživatele
-      alert('Smazat uživatele s ID: ' + userId);
+      if (confirm(`Delete user ${userId}?`)) {
+        fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+        .then(() => loadUsers(currentMin, currentMax))
+        .catch(error => {
+          console.error('Delete error:', error);
+          alert('Delete failed');
+        });
+      }
     }
 
     function banUser(userId) {
-      fetch(`/api/v1/users/ban/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+      fetch(`/api/v1/users/ban/${userId}`, { method: 'POST' })
       .then(response => response.json())
       .then(data => {
         if (data.message) {
-          alert(data.message);
-          loadUsers(currentMin, currentMax); // Reload users list to reflect changes
+          loadUsers(currentMin, currentMax);
         } else {
-          alert('Failed to ban user');
+          alert('Operation failed');
         }
       })
       .catch(error => {
-        console.error('Error banning user:', error);
-        alert('Failed to ban user');
+        console.error('Ban error:', error);
+        alert('Operation failed');
       });
     }
 
-    // Ovládání stránkování
+    // Event listeners
     document.getElementById('nextPage').addEventListener('click', () => {
       if (!isSearching) {
         currentMin += itemsPerPage;
@@ -370,15 +387,11 @@
       }
     });
 
-    // Vyhledávání
     document.getElementById('searchBtn').addEventListener('click', () => {
       const query = document.getElementById('searchInput').value.trim();
-      if (query) {
-        searchUsers(query);
-      }
+      if (query) searchUsers(query);
     });
 
-    // Tlačítko pro zrušení vyhledávání a načtení všech uživatelů
     document.getElementById('clearSearch').addEventListener('click', () => {
       document.getElementById('searchInput').value = '';
       currentMin = 1;
@@ -386,22 +399,13 @@
       loadUsers(currentMin, currentMax);
     });
 
-    // Tlačítko pro zobrazení zabanovaných uživatelů
-    document.getElementById('showBanned').addEventListener('click', () => {
-      loadBannedUsers();
-    });
+    document.getElementById('showBanned').addEventListener('click', loadBannedUsers);
 
-    // Funkce pro odhlášení
     document.getElementById('logout').addEventListener('click', () => {
-      if (isGuest) {
-        fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
-      }
+      if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
       localStorage.clear();
       window.location.href = '/login';
     });
-
-    // První načtení uživatelů
-    loadUsers(currentMin, currentMax);
   </script>
 </body>
 </html>
