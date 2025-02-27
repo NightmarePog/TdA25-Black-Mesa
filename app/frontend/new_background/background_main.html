@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>background_main</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Dosis';
@@ -25,10 +23,24 @@
             width: 70vw;
             height: auto;
             position: absolute;
-            top: 25vh;
+            top: 35%;
+            left: 40vw;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+        }
+
+        .slogan {
+            text-align: center;
+            color: #FFFFFF;
+            width: 70vw;
+            height: auto;
+            position: absolute;
+            top: 60%;
             left: 2vw;
             z-index: 0;
-            transform: translate(0%, 0%);
+            transform: translate( 0%, -50%);
+            font-size: 50px;
+            font-weight: 700;
         }
 
         .logo_2 {
@@ -41,50 +53,20 @@
             transform: translate(100%, 0%);
         }
 
-        .floating-bar {
-            display: flex;
-            position: absolute; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
-            top: 3vh; /* Vzdálenost od horního okraje */
-            left: 15vw; /* Vzdálenost od levého okraje */
-            right: 15vw; /* Vzdálenost od pravého okraje */
-            height: 8vh; /* Dvakrát vyšší než původní */
-            line-height: 30px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
-            background-color: #FFFFFF; /* Černá barva */
-            border-radius: 20px; /* Zakulacené rohy */
-            z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
-            box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
-            border: 2px solid #000000;
-            font-family: 'Dosis';
-        }
-
-        input[type="nickname"] {
-            width: 19vw;
-            height: 6vh;
-            padding: 10px 10px;
-            border: 1px solid #000000;
-            border-radius: 80px;
-            left: 64.5vw;
-            top: 29vh;
-            position: absolute;
-            transform: translate(50%, 50%);
-            text-align: center;
-            font-size: large;
-            font-family: 'Dosis';
-        }
 
         .play_button {
+            transform: translate(-50%, -50%);
             font-size: 30px;
             font-weight: 1000;
             padding: 10px 10px;
             z-index: 0;
-            width: 20vw;
-            height: 10vh;
+            width: max-content;
+            height: fit-content;
             position: absolute;
-            left: 65vw;
-            top: 40vh;
-            transform: translate(50%, 50%);
-            font-family: 'Dosis';
+            left: 85%;
+            top: 50vh;
 
+            
             align-items: center;
             appearance: none;
             background-clip: padd;
@@ -92,7 +74,7 @@
             background-image: none;
             border-style: none;
             box-sizing: border-box;
-            color: #ffffff;
+            color: #fff;
             cursor: pointer;
             display: inline-block;
             flex-direction: row;
@@ -142,7 +124,7 @@
 
         .play_button:after {
             background-color: initial;
-            background-image: linear-gradient(#E31837 0, #E31837 100%);
+            background-image: linear-gradient(#E31837 0, #E31837 200%);
             bottom: 4px;
             content: "";
             display: block;
@@ -155,120 +137,124 @@
             z-index: -1;
         }
 
-        .play_button:hover:not(:disabled):before {
-            background: linear-gradient(92.83deg, #AB2E58, #AB2E58 100%);
-        }
-
-        .play_button:hover:not(:disabled):after {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 0;
-            transition-timing-function: ease-in;
-            opacity: 0;
-        }
-
-        .play_button:active:not(:disabled) {
-            color: #ccc;
-        }
-
-        .play_button:active:not(:disabled):before {
-            background-image: linear-gradient(0deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
-        }
-
-        .play_button:active:not(:disabled):after {
-            background-image: linear-gradient(#541a0f 0, #0c0d0d 100%);
-            bottom: 4px;
-            left: 4px;
-            right: 4px;
-            top: 4px;
-        }
-
-        .play_button:disabled {
-            cursor: default;
-            opacity: .24;
-        }
-
-        .button-wrapper {
-            flex: 1; /* Každé tlačítko má stejnou velikost */
-            display: flex;
-        }
-
-        #waveCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
-
-
-        .bar-button {
-            flex: 1; /* Každé tlačítko vyplní celý svůj wrapper */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-decoration: none;
-            color: black;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-transform: uppercase;
-            border-right: 2px ; /* Čára mezi tlačítky */
-            font-family: 'Dosis';
-            }
-
-            .bar-button:hover {
-                background-color: rgba(0, 0, 0, 0.3);
-            }
-
-            .bar-button img {
-                width: auto;  /* Šířka obrázku bude 10% šířky obrazovky */
-                height: 5vh; /* Výška obrázku se automaticky přizpůsobí šířce */
-                max-width: 50px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
-                max-height: 50px; /* Maximální výška obrázku je 60px */
-                margin-right: 8px;
-                margin-left: 10px;
-                vertical-align: middle;
-                
-            }
-
 
     </style>
 </head>
 <body>
-    <canvas id="waveCanvas"></canvas>
     <img src="picture/game_logo.svg" class="logo" alt="Logo">
     <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
-    
-    <div class="floating-bar">
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">PLAY AS GUEST
-                <img src="picture/zarivka_idea_cerne.svg" alt="Icon">
-            </a>
-        </div>
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">LOG IN
-                <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
-            </a>
-        </div>
-        <div class="button-wrapper">
-            <a href="#" class="bar-button">SIGN UP
-                <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
-            </a>
-        </div>
-    </div>
+    <p1 class="slogan"></p1>
+    <script>
+        // Seznam textů
+        const texts = [
+            "Be the best TicTacToe player!",
+            "Challenge yourself with TicTacToe!",
+            "Master the game of TicTacToe!",
+            "Every move is a step towards victory!",
+            "ThinkTacToe is not about luck, it's about strategy!"
+        ];
+
+        // Funkce pro náhodný výběr textu
+        function setRandomSlogan() {
+            // Vybere náhodný text z pole
+            const randomText = texts[Math.floor(Math.random() * texts.length)];
+            
+            // Najde element s třídou "slogan" a nastaví jeho text na náhodně vybraný
+            document.querySelector('.slogan').textContent = randomText;
+        }
+
+        // Zavoláme funkci, aby se slogan změnil při načtení stránky
+        window.onload = setRandomSlogan;
+    </script>
     
     
     <a href="https://www.example.com" target="_blank">
-        <button class="play_button" type="button">PLAY AS GUEST</button>
+        <button class="play_button" type="button">PLAY</button>
     </a>
-    <input type="nickname" id="nickname" placeholder="Nickname" required>
 
 
 
 
 
-    <script src="/static/js/waves.js"></script>
+
+    <canvas id="waveCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        const waveHeights = [30, 25, 20];
+        const waveSpeeds = [Math.random() * 0.1 + 0.2, Math.random() * 0.2 + 0.2, Math.random() * 0.25 + 0.2];
+        let offset = [0, 0, 0];
+        let verticalOffsets = [0, 0, 0]; // Pro vertikální pohyb vln
+        let lastTime = performance.now();
+
+        // Randomizované hodnoty pro každou vlnu
+        const randomFactors = waveHeights.map(() => ({
+            speed: Math.random() * 0.5 + 0.2,  // náhodná rychlost vlny (od 0.2 do 0.7)
+            verticalMovement: Math.random() * 30 + 5,  // náhodný vertikální pohyb (od 5 do 20)
+            offsetFactor: Math.random() * 4 + 1,  // náhodný faktor pro horizontalitu pohybu
+        }));
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function drawWaves(timestamp) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate delta time
+            let deltaTime = (timestamp - lastTime) / 1000; // in seconds
+            lastTime = timestamp;
+
+            // Gradient background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, canvas.height * 0.9, canvas.width, canvas.height * 0.3); // Bílá barva dole
+
+            // Draw waves
+            for (let i = 0; i < waveHeights.length; i++) {
+                if (i === 1) {
+                    offset[i] -= waveSpeeds[i] * deltaTime * 100 * randomFactors[i].offsetFactor; // Reverse direction for the middle wave
+                } else {
+                    offset[i] += waveSpeeds[i] * deltaTime * 100 * randomFactors[i].offsetFactor;
+                }
+
+                // Vertikální pohyb vlny s variabilitou
+                verticalOffsets[i] = Math.sin(timestamp * 0.001 * randomFactors[i].speed + i) * randomFactors[i].verticalMovement;
+
+                drawWave(i);
+            }
+
+            requestAnimationFrame(drawWaves);
+        }
+
+        function drawWave(index) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            // Tmavší barvy pro vlny dále v pozadí
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${(index + 1) * 0.2})`);  // Světlejší
+            gradient.addColorStop(1, `rgba(230, 230, 230, ${(index + 1) * 0.4})`);  // Tmavší
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.3 + verticalOffsets[index]); // Přidání vertikálního pohybu
+
+            const waveHeight = (2 / 5) * canvas.height - 139;
+            const amplitude = waveHeights[index];
+            const frequency = 0.02;
+
+            for (let x = 0; x <= canvas.width; x++) {
+                const y = canvas.height * 0.8 + amplitude * Math.sin(frequency * (x + offset[index])) + verticalOffsets[index]; // Přidání vertikálního pohybu
+                ctx.lineTo(x, y);
+            }
+
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        requestAnimationFrame(drawWaves);
+    </script>
 </body>
 </html>
