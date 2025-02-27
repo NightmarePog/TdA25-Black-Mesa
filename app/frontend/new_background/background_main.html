@@ -24,9 +24,9 @@
             height: auto;
             position: absolute;
             top: 35%;
-            left: 2vw;
+            left: 40vw;
             z-index: 0;
-            transform: translate(0%, 0%);
+            transform: translate(-50%, -50%);
         }
 
         .slogan {
@@ -35,7 +35,7 @@
             width: 70vw;
             height: auto;
             position: absolute;
-            top: 62%;
+            top: 60%;
             left: 2vw;
             z-index: 0;
             transform: translate( 0%, -50%);
@@ -137,86 +137,6 @@
             z-index: -1;
         }
 
-        .play_button:hover:not(:disabled):before {
-            background: linear-gradient(92.83deg, #AB2E58, #AB2E58 100%);
-        }
-
-        .play_button:hover:not(:disabled):after {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 0;
-            transition-timing-function: ease-in;
-            opacity: 0;
-        }
-
-        .play_button:active:not(:disabled) {
-            color: #ccc;
-        }
-
-        .play_button:active:not(:disabled):before {
-            background-image: linear-gradient(0deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
-        }
-
-        .play_button:active:not(:disabled):after {
-            background-image: linear-gradient(#541a0f 0, #0c0d0d 100%);
-            bottom: 4px;
-            left: 4px;
-            right: 4px;
-            top: 4px;
-        }
-
-        .play_button:disabled {
-            cursor: default;
-            opacity: .24;
-        }
-
-        .button-wrapper {
-        display: flex;
-        gap: 20px; /* Mezera mezi tlačítky */
-        width:fit-content;
-        flex-direction: row-reverse;
-        margin-left: auto;
-        direction: rtl;
-        margin-top: 10px;
-        margin-right: 10px;
-        }
-
-        
-        .bar-button {
-            flex: auto;
-            display:inline-flex;
-            text-align: center;
-            height: 4vh;
-            width: fit-content;
-            border-radius: 80px;
-            justify-content: center;
-            align-items: center;
-            color: black;
-            font-size: 25px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            font-weight: bold;
-            background-color: rgba(179, 179, 179, 0.1);
-            transition: background-color 0.3s ease;
-            text-shadow: 1px -1px rgb(187, 187, 187);
-            }
-
-        .bar-button:hover {
-            background-color: #395A9A; /* Změní barvu na modrou při hoveru */
-        }
-
-
-            .bar-button img {
-                width: auto;  /* Šířka obrázku bude 10% šířky obrazovky */
-                height: 5vh; /* Výška obrázku se automaticky přizpůsobí šířce */
-                max-width: 50px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
-                max-height: 50px; /* Maximální výška obrázku je 60px */
-                margin-right: 8px;
-                margin-left: 5px;
-                vertical-align: middle;
-            }     
-
 
     </style>
 </head>
@@ -247,19 +167,9 @@
         window.onload = setRandomSlogan;
     </script>
     
-    <div class="button-wrapper">
-        <a href="#" class="bar-button">
-            LOG IN
-            <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
-        </a>
-        <a id="last" href="#" class="bar-button">
-            SIGN UP
-            <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
-        </a>
-    </div>
     
     <a href="https://www.example.com" target="_blank">
-        <button class="play_button" type="button">PLAY AS GUEST</button>
+        <button class="play_button" type="button">PLAY</button>
     </a>
 
 
