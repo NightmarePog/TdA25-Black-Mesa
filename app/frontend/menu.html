@@ -339,6 +339,11 @@
                 </div>
                 <button class="action-button" id="startLocalGame">Start Local Game</button>
             </div>
+
+            <div class="game-box">
+              <h2 class="game-title">Find Game</h2>
+              <button id="findGame" class="action-button">Find Public Game</button>
+            </div>
         </div>
 
         <!-- Saved Games List -->
@@ -383,6 +388,10 @@
     if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
       handleLogout();
     }
+
+    document.getElementById('findGame').addEventListener('click', () => {
+      window.location.href = '/findgame';
+    });
 
     // Na začátek scriptu po získání userId
 fetch(`/api/v1/users/${userId}`)
