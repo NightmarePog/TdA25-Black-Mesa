@@ -513,7 +513,7 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
       };
       let uuid = "";
 
-      fetch(`${window.location.origin}/api/v1/games`, {
+      fetch(`/api/v1/games`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
