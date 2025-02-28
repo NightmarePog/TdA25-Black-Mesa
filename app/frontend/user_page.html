@@ -4,314 +4,250 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ThinkTacToe - User Profile</title>
-  <link rel="icon" type="/static/picture/X_cervene.svg" href="/static/picture/X_cervene.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Dosis', sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: flex;
-      gap: 20px;
-    }
-    /* Levý panel - profil */
-    .profile {
-      width: 45%;
-      text-align: center;
-      background-color: #0070BB;
-      padding: 20px;
-      border-radius: 40px;
-      color: #FFFFFF;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      margin: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-    }
-    .profile img {
-      width: 400px;
-      height: 400px;
-      border-radius: 10%;
-      margin-bottom: 10px;
-      border: 2px solid #ccc;
-
-    }
-    .stats-table {
-      width: 100%;
-      border-collapse:collapse
-    }
-    .stats-table td {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
-    /* Pravý panel - obsah */
-    .content {
-      width: 70%;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #333;
-    }
-    .game {
-      margin-bottom: 30px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 10px;
-      background-color: #fafafa;
-    }
-    .game-header {
-      background-color: #f0f0f0;
-      padding: 8px;
-      border-radius: 4px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .game-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .game-table td {
-      vertical-align: top;
-      padding: 10px;
-      border: none;
-    }
-    .board-table {
-      border-collapse: collapse;
-      margin: auto;
-    }
-    .board-table td {
-      border: 1px solid #ccc;
-      width: 20px;
-      height: 20px;
-      text-align: center;
-      font-size: 12px;
-      padding: 2px;
-    }
-    .game-info p, .game-info ul {
-      margin: 4px 0;
-      font-size: 14px;
-    }
-    #waveCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
     }
 
     .header {
-      position: fixed;
-      top: 15px;
-      right: 15px;
+      width: 100%;
+      padding: 15px 0;
       display: flex;
+      justify-content: flex-end;
       align-items: center;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      position: fixed;
+      top: 0;
       z-index: 1000;
     }
 
-    .nickname-box {
-      display: flex;
-      align-items: center;
-      background-color: #1A1A1A;
-      color: #FFFFFF;
-      padding: 10px 15px;
+    .content {
+      max-width: 1200px;
+      margin: 150px auto 50px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      position: relative;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      gap: 40px;
     }
 
-    .nickname-box:hover {
-      background-color: #080808;
+    .profile-section {
+      width: 35%;
+      background: rgba(0, 112, 187, 0.9);
+      padding: 30px;
+      border-radius: 20px;
+      color: white;
+      height: fit-content;
     }
 
-    .menu {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 0;
-      background: #FFFFFF;
-      color: #1A1A1A;
-      border: 1px solid #CCC;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      z-index: 10;
+    .games-section {
+      width: 65%;
     }
 
-    .nickname-box:hover .menu {
-      display: block;
+    h1 {
+      color: #0070BB;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 700;
     }
 
-    .menu button {
-      background-color: #E31837;
+    h2 {
       color: #FFFFFF;
-      border: none;
-      padding: 8px 12px;
+      margin: 1.5rem 0;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .stats-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 16px;
+    }
+
+    .stats-table td:first-child {
+      font-weight: 600;
+    }
+
+    .game-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .game-header {
+      color: #E31837;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .game-info {
       font-size: 14px;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    .board-table {
+      border-collapse: collapse;
+      margin: 10px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .board-table td {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #eee;
+      text-align: center;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .nav-button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0, 112, 187, 0.9);
+      color: white;
+      font-weight: 600;
       cursor: pointer;
-      border-radius: 5px;
+      transition: all 0.3s ease;
+      margin-right: 5%;
     }
 
-    .menu button:hover {
-      background-color: #AB2E58;
+    .nav-button:hover {
+      background: rgba(227, 24, 55, 0.9);
+      transform: translateY(-2px);
     }
 
-    @media screen and (max-width: 600px) {
-      .header {
-        top: 10px;
-        right: 10px;
+    
+    #waveCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+    @media (max-width: 768px) {
+      .content {
+        flex-direction: column;
+        margin-top: 100px;
+        padding: 20px;
+      }
+
+      .profile-section,
+      .games-section {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="nickname-box">
-      <span id="nickname">Loading...</span>
-      <div class="menu">
-        <button id="logout">Log Out</button>
-      </div>
-    </div>
-  </div>
+  <div id="background-container"></div>
 
-  <canvas id="waveCanvas"></canvas>
-  <script src="/static/js/waves.js"></script>
-  <div class="container">
-    <!-- Levý panel: Profil hráče -->
-    <div class="profile">
-      <img id="catImage" src="" alt="Profilovka">
+  <header class="header">
+    <button class="nav-button" onclick="window.location.href='/menu'">Back to Menu</button>
+  </header>
 
-      <script>
-        fetch("https://api.thecatapi.com/v1/images/search?limit=1")
-        .then(response => response.json())
-        .then(data => {
-        document.getElementById("catImage").src = data[0].url;
-        })
-        .catch(error => console.error("Chyba při načítání obrázku:", error));
-      </script>
+  <div class="content">
+    <!-- Profile Section -->
+    <div class="profile-section">
       <h2>{{ user_info.username }}</h2>
       <table class="stats-table">
-        <tr><strong>Plays since: {{ user_info.createdAt[:10] | replace('-', '.') }}</strong></tr>
-        <tr><td><strong>Wons:</strong></td><td>{{ user_info.wins }}</td></tr>
-        <tr><td><strong>Draws:</strong></td><td>{{ user_info.draws }}</td></tr>
-        <tr><td><strong>Looses:</strong></td><td>{{ user_info.losses }}</td></tr>
-        <tr><td><strong>Rating:</strong></td><td>{{ user_info.elo }}</td></tr>
+        <tr><td>Member Since</td><td>{{ user_info.createdAt[:10] | replace('-', '.') }}</td></tr>
+        <tr><td>Wins</td><td>{{ user_info.wins }}</td></tr>
+        <tr><td>Draws</td><td>{{ user_info.draws }}</td></tr>
+        <tr><td>Losses</td><td>{{ user_info.losses }}</td></tr>
+        <tr><td>Rating</td><td>{{ user_info.elo }}</td></tr>
       </table>
     </div>
 
-    <!-- Pravý panel: Uložené hry -->
-    <div class="content">
-      <h1>Uložené hry</h1>
+    <!-- Games Section -->
+    <div class="games-section">
+      <h1>Saved Games</h1>
       {% if user_info.saved_games %}
         {% for game_id, game in user_info.saved_games.items() %}
-        <div class="game">
+        <div class="game-card">
           <div class="game-header">{{ game.name }}</div>
-          <table class="game-table">
-            <tr>
-              <td class="game-info" style="width:60%;">
-                <p><strong>UUID:</strong> {{ game.uuid }}</p>
-                <p><strong>Created:</strong> {{ game.createdAt[:10] | replace('-', '.') }}</p>
-                <p><strong>Updated:</strong> {{ game.updatedAt }}</p>
-                <p><strong>Difficulty:</strong> {{ game.difficulty }}</p>
-                <p><strong>Game state:</strong> {{ game.gameState }}</p>
-                <p>
-                  <strong>Winner:</strong>
-                  {% if game.winnerId %}
-                    {% set winner_found = false %}
-                    {% for player in game.players %}
-                      {% if player.user_id == game.winnerId %}
-                        {{ player.username }} (UUID: {{ player.user_id }})
-                        {% set winner_found = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if not winner_found %}Není určen{% endif %}
-                  {% else %}
-                    Není určen
-                  {% endif %}
-                </p>
-                <p><strong>Players:</strong></p>
-                <ul>
-                  {% for player in game.players %}
-                    <li>{{ player.username }} (UUID: {{ player.user_id }}, Role: {{ player.role }})</li>
+          <div class="game-grid">
+            <div class="game-info">
+              <p><strong>Created:</strong> {{ game.createdAt[:10] | replace('-', '.') }}</p>
+              <p><strong>Players:</strong></p>
+              <ul>
+                {% for player in game.players %}
+                  <li>{{ player.username }} ({{ player.role }})</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <div>
+              <table class="board-table">
+                {% for row in game.board %}
+                <tr>
+                  {% for cell in row %}
+                  <td {% if cell == 'X' %} style="color: #E31837;" {% elif cell == 'O' %} style="color: #0070BB;" {% endif %}>
+                    {{ cell }}
+                  </td>
                   {% endfor %}
-                </ul>
-              </td>
-              <td class="game-board" style="width:40%;">
-                <table class="board-table">
-                  {% for row in game.board %}
-                  <tr>
-                    {% for cell in row %}
-                    <td {% if cell == 'X' %} style="color: red;" {% elif cell == 'O' %} style="color: blue;" {% endif %}>
-                      {{ cell }}
-                    </td>
-                    {% endfor %}
-                  </tr>
-                  {% endfor %}
-                </table>
-              </td>
-            </tr>
-          </table>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
         </div>
         {% endfor %}
       {% else %}
-        <p>No saved games.</p>
+        <p class="game-info">No saved games found.</p>
       {% endif %}
+    </div>
   </div>
-
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
   <script>
-      const userId = localStorage.getItem('userId');
-    const username = localStorage.getItem('username');
+    // Logout Logic
+    const userId = localStorage.getItem('userId');
     const isGuest = localStorage.getItem('isGuest') === 'true';
+
+    if (isGuest) {
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+    }
     
     document.getElementById('logout').addEventListener('click', () => {
       if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
       localStorage.clear();
       window.location.href = '/login';
     });
-
-    document.getElementById('nickname').textContent = username || 'Unknown User';
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Kontrola jestli jsme na profilové stránce
-        if (document.querySelector('h1').textContent === 'User Profile') {
-            checkAdminStatus();
-            updateLoginByText();
-        }
-    });
-    
-    async function checkAdminStatus() {
-        try {
-            const response = await fetch('/api/v1/users/isAdmin', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            // Skrytí emailu pro ne-adminy
-            const emailRow = document.querySelector('#emailRow');
-            if (emailRow && !data.isAdmin) {
-                emailRow.style.display = 'none';
-            }else {
-                emailRow.textContent = `Email: ${data.email}`;
-            }
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-            // Výchozí chování - skrýt email pokud selže kontrola
-            const emailRow = document.querySelector('#emailRow');
-            if (emailRow) emailRow.style.display = 'none';
-        }
-    }
-    </script>
+  </script>
 </body>
 </html>

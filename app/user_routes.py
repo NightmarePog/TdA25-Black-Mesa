@@ -206,7 +206,7 @@ def get_banned_users():
 @user_bp.route('/get_users', methods=['POST'])
 def get_users():
     '''
-    Endpoint pro získání uživatelů v zadaném rozsahu.
+    Endpoint pro získání uživatelů v zadaném rozsahu seřazených od nejvyššího ELO.
     Očekává JSON ve formátu:
     {
         "min": int (výchozí 0),
@@ -218,43 +218,34 @@ def get_users():
         return jsonify({"error": "No data provided"}), 400
 
     try:
-        # Získání základních parametrů
         min_users = int(data.get("min", 0))
         max_users_provided = "max" in data
         max_users = int(data["max"]) if max_users_provided else None
     except ValueError:
         return jsonify({"error": "min and max must be integers"}), 400
 
-    # Získání celkového počtu uživatelů
     total_users = User.query.count()
     
-    # Automatické nastavení max pro prázdnou databázi
     if total_users == 0:
         return jsonify({"users": [], "count": 0}), 200
 
-    # Nastavení výchozí hodnoty max
     if not max_users_provided:
         max_users = total_users - 1
 
-    # Validace vstupů
     if min_users < 0:
         return jsonify({"error": "min cannot be negative"}), 400
     
     if max_users < min_users:
         return jsonify({"error": "max must be >= min"}), 400
 
-    # Korekce horní hranice
     max_users = min(max_users, total_users - 1)
-
-    # Výpočet limitu pro dotaz
     limit = max_users - min_users + 1
 
-    # Získání uživatelů s řazením podle data vytvoření
-    users = User.query.order_by(User.created_at.asc()).offset(min_users).limit(limit).all()
+    # Změna řazení na ELO sestupně
+    users = User.query.order_by(User.elo.desc()).offset(min_users).limit(limit).all()
 
-    # Serializace výsledků (bez citlivých údajů)
     users_data = [user_to_dict(user) for user in users]
-
+    print(users_data)
     return jsonify({
         "users": users_data,
         "count": len(users_data),

@@ -257,6 +257,14 @@
             margin-top: 2rem;
         }
 
+        .nav-button img {
+          width: 20px;
+          height: 20px;
+          filter: invert(1) brightness(2);
+          -webkit-filter: invert(1) brightness(2);
+          transition: transform 0.3s ease;
+      }
+
         #waveCanvas {
             position: fixed;
             top: 0;
@@ -271,6 +279,11 @@
     <header class="header">
         <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
         <div class="nav-container">
+          <button class="nav-button" onclick="window.location.href='/menu'">
+            <img src="static/picture/zarivka_playing_cerne.svg" alt="List">
+            Menu
+        </button>
+
             <div class="user-menu">
                 <div class="user-button" id="userButton">
                     <span id="nickname">Loading...</span>
@@ -339,6 +352,12 @@
               document.getElementById('dropdownMenu').classList.remove('show');
           }
       });
+
+      if (isGuest) {
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+      }
 
       document.getElementById('logout').addEventListener('click', () => {
           if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
