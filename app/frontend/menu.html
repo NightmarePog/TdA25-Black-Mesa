@@ -375,18 +375,6 @@
                 <button class="action-button" id="joinGame">Join Game</button>
             </div>
 
-            <!-- Local Game Box -->
-            <div class="game-box">
-                <h2 class="game-title">Local Game</h2>
-                <div class="input-group">
-                    <input type="text" id="localPlayer1" placeholder="Player 1 Name">
-                </div>
-                <div class="input-group">
-                    <input type="text" id="localPlayer2" placeholder="Player 2 Name">
-                </div>
-                <button class="action-button" id="startLocalGame">Start Local Game</button>
-            </div>
-
             <div class="game-box">
               <h2 class="game-title">Find Game</h2>
               <div class="button-container">
@@ -482,57 +470,6 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
     document.getElementById('elo').textContent = stats.rating;
   })
   .catch(error => console.error('Error loading stats:', error));
-
-    document.getElementById('startLocalGame').addEventListener('click', () => {
-      const player1 = document.getElementById('localPlayer1').value.trim();
-      const player2 = document.getElementById('localPlayer2').value.trim();
-
-      if (!player1 || !player2) {
-        alert('Please enter names for both players.');
-        return;
-      }
-      const roles = Math.random() < 0.5 ? ["X", "O"] : ["O", "X"];
-      const players_data = [
-        { 
-          user_id: userId, 
-          username: player1, 
-          role: roles[0] 
-        },
-        { 
-          user_id: `${userId}_2`, 
-          username: player2, 
-          role: roles[1] 
-        }
-      ];
-      const localGameData = {
-        name: player1 + ' vs ' + player2,
-        players: players_data,
-        difficulty: "easy",
-        board: Array(15).fill(null).map(() => Array(15).fill("")),
-        local: true,
-        own: userId
-      };
-      let uuid = "";
-
-      fetch(`/api/v1/games`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(localGameData)
-      })
-      .then(response => response.json())
-      .then(data => {
-        uuid = data.uuid;
-      })
-      .catch(error => console.error('Error:', error));
-      
-      setTimeout(() => {
-        console.log('Game created successfully');
-        localStorage.setItem('uuid', uuid);
-        window.location.href = '/game';
-      }, 1000);
-    });
 
     function deleteGuestAccount() {
       fetch(`${window.location.origin}/api/v1/users/${userId}`, { method: 'DELETE' })

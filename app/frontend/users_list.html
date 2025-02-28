@@ -319,11 +319,6 @@
                 </thead>
                 <tbody id="usersBody"></tbody>
             </table>
-
-            <div class="pagination">
-                <button class="filter-button" id="prevPage">Previous</button>
-                <button class="filter-button" id="nextPage">Next</button>
-            </div>
         </div>
     </div>
 
@@ -488,23 +483,6 @@
         alert('Operation failed');
       });
     }
-
-    // Event listeners
-    document.getElementById('nextPage').addEventListener('click', () => {
-      if (!isSearching) {
-        currentMin += itemsPerPage;
-        currentMax += itemsPerPage;
-        loadUsers(currentMin, currentMax);
-      }
-    });
-
-    document.getElementById('prevPage').addEventListener('click', () => {
-      if (!isSearching && currentMin > 1) {
-        currentMin -= itemsPerPage;
-        currentMax -= itemsPerPage;
-        loadUsers(currentMin, currentMax);
-      }
-    });
 
     document.getElementById('searchBtn').addEventListener('click', () => {
       const query = document.getElementById('searchInput').value.trim();
