@@ -312,18 +312,9 @@
           <img src="static/picture/zarivka_idea_cerne.svg" alt="GDPR">
           GDPR
         </button>
-          
-          <button class="nav-button" onclick="showForm('guest')">
-              <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
-              Settings
-          </button>
-          <button class="nav-button" onclick="showForm('login')">
-              <img src="static/picture/zarivka_playing_cerne.svg" alt="Login">
+          <button class="nav-button" onclick="window.location.href='/list'">
+              <img src="static/picture/zarivka_playing_cerne.svg" alt="List">
               Player list
-          </button>
-          <button class="nav-button" onclick="showForm('register')">
-              <img src="static/picture/zarivka_thinking_cerne.svg" alt="Sign Up">
-              Profile
           </button>
 
           <div class="user-menu">
@@ -447,10 +438,14 @@
       document.getElementById('nickname').textContent = username || 'Unknown Player';
     }
 
-    if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
+    if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 60) {
       handleLogout();
     }
 
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('time_from_leaving', Date.now());
+    });
+    
     document.getElementById('findGame').addEventListener('click', () => {
       localStorage.setItem('ranked', 'false');
       window.location.href = '/findgame';
@@ -536,10 +531,6 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
         localStorage.setItem('uuid', uuid);
         window.location.href = '/game';
       }, 1000);
-    });
-
-    window.addEventListener('beforeunload', () => {
-      localStorage.setItem('time_from_leaving', Date.now());
     });
 
     function deleteGuestAccount() {

@@ -343,5 +343,13 @@
 
     <canvas id="waveCanvas"></canvas>
     <script src="/static/js/waves.js"></script>
+    <script>
+        const isGuest = localStorage.getItem('isGuest') === 'true';
+        if (isGuest) {
+            window.addEventListener('beforeunload', () => {
+                localStorage.setItem('time_from_leaving', Date.now());
+            });
+        }
+    </script>
 </body>
 </html>
