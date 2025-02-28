@@ -215,9 +215,38 @@
 <body>
   <div id="background-container"></div>
   <header class="header">
-    <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo" />
-  </header>
+    <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
+    <nav class="nav-container">
+        <div class="user-menu">
+            <div class="user-button" id="userButton">
+                <span id="nickname">Loading...</span>
+                <img src="static/picture/zarivka_idea_cerne.svg" alt="User" style="width:20px;filter:invert(1)">
+            </div>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="stats">
+                    <div class="stats-item">
+                        <span>Wins:</span>
+                        <span id="wins">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span>Draws:</span>
+                        <span id="draws">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span>Losses:</span>
+                        <span id="losses">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span>ELO Rating:</span>
+                        <span id="elo">0</span>
+                    </div>
+                </div>
+                <button class="action-button logout-button" id="logout">Log Out</button>
+            </div>
+        </div>
 
+    </nav>
+</header>
   <div class="game-container">
     <div class="game-main">
       <!-- Herní deska -->
