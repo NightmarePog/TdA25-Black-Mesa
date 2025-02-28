@@ -1,4 +1,4 @@
-from flask import Flask, jsonify,request, redirect
+from flask import Flask, jsonify
 from extensions import db, socketio
 from models import Game, User
 from user_routes import user_bp
@@ -52,12 +52,6 @@ def create_app():
     thread = threading.Thread(target=matchmaking_background_task, args=(app,))
     thread.daemon = True
     thread.start()
-
-    @app.before_request
-    def force_https():
-        if not request.is_secure:  # Pokud požadavek není přes HTTPS
-            return redirect(request.url.replace("http://", "https://"))
-
 
     return app
 
