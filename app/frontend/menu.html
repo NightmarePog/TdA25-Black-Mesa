@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Portal - Menu</title>
+    <title>ThinkTacToe - Menu</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -19,21 +19,21 @@
         }
 
         .header {
-        width: 100%;
-        padding: 15px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        position: fixed;
-        top: 0;
-        z-index: 1000;
-        left: 0;
-        right: 0;
+          width: 100%;
+          padding: 15px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          position: fixed;
+          top: 0;
+          z-index: 1000;
+          left: 0;
+          right: 0;
         }
 
         .logo {
@@ -263,6 +263,41 @@
       -webkit-filter: invert(1) brightness(2);
       transition: transform 0.3s ease;
   }
+
+      .search-container {
+          margin-bottom: 1rem;
+      }
+
+      #searchInput {
+          width: 100%;
+          padding: 12px;
+          border: 2px solid #e9ecef;
+          border-radius: 10px;
+          font-size: 16px;
+          transition: border-color 0.3s ease;
+      }
+
+      #searchInput:focus {
+          border-color: #0070BB;
+          outline: none;
+      }
+
+      .table-button {
+          padding: 8px 16px;
+          background: #E31837;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+      }
+
+      .table-button:hover {
+          background: #C8102E;
+          transform: translateY(-2px);
+      }
     </style>
 </head>
 <body>
@@ -365,16 +400,18 @@
 
         <!-- Saved Games List -->
         <div class="game-list">
-            <h2 class="game-title">Saved Games</h2>
-            <div class="sort-buttons">
-                <button class="sort-button" id="sortByName">Sort by Name</button>
-                <button class="sort-button" id="sortByDate">Sort by Date</button>
-                <button class="sort-button" id="sortByDifficulty">Sort by Difficulty</button>
-            </div>
-            <table class="game-table" id="gamesTable">
-                <!-- Games will be populated here -->
-            </table>
-        </div>
+          <h2 class="game-title">Saved Games</h2>
+          <div class="search-container">
+              <input type="text" id="searchInput" placeholder="Search by name or date">
+          </div>
+          <div class="sort-buttons">
+              <button class="sort-button" id="sortByName">Sort by Name</button>
+              <button class="sort-button" id="sortByDate">Sort by Date</button>
+          </div>
+          <table class="game-table" id="gamesTable">
+              <!-- Games will be populated here -->
+          </table>
+      </div>
     </div>
 
   <!-- Načtení skriptu pro animované vlny -->
@@ -522,6 +559,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
       }
       localStorage.clear();
       sessionStorage.clear();
+      fetch("/api/v1/users/logout", {method: "GET"});
       window.location.href = '/login';
     }
 
@@ -570,92 +608,87 @@ fetch(`/api/v1/users/get_score/${userId}`)
 
     // Načtení uložených her
     fetch(`/api/v1/users/saved_games/${userId}`, {
-      method: 'GET'
+        method: 'GET'
     })
     .then(response => response.json())
-    .then(games => {
-      const gamesTable = document.getElementById('gamesTable');
-      renderGameList(games);
+    .then(originalGames => {
+        let searchText = '';
+        let sortBy = 'date'; // Výchozí třídění podle data
 
-      function renderGameList(games) {
-        gamesTable.innerHTML = '';
-        games.forEach(game => {
-          const row = document.createElement('tr');
+        function renderGameList() {
+            let filteredGames = originalGames.filter(game => {
+                const name = game.name.toLowerCase();
+                const date = new Date(game.updatedAt).toLocaleString().toLowerCase();
+                return name.includes(searchText) || date.includes(searchText);
+            });
 
-          const nameCell = document.createElement('td');
-          nameCell.textContent = game.name;
-          row.appendChild(nameCell);
+            if (sortBy === 'name') {
+                filteredGames.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'date') {
+                filteredGames.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            }
 
-          const dateCell = document.createElement('td');
-          const updatedAt = new Date(game.updatedAt).toLocaleString();
-          dateCell.textContent = updatedAt;
-          row.appendChild(dateCell);
+            const gamesTable = document.getElementById('gamesTable');
+            gamesTable.innerHTML = '';
+            filteredGames.forEach(game => {
+                const row = document.createElement('tr');
 
-          const difficultyCell = document.createElement('td');
-          difficultyCell.textContent = game.difficulty;
-          row.appendChild(difficultyCell);
+                const nameCell = document.createElement('td');
+                nameCell.textContent = game.name;
+                row.appendChild(nameCell);
 
-          const actionsCell = document.createElement('td');
+                const dateCell = document.createElement('td');
+                const updatedAt = new Date(game.updatedAt).toLocaleString();
+                dateCell.textContent = updatedAt;
+                row.appendChild(dateCell);
 
-          const playButton = document.createElement('button');
-          if (game.winnerId === null) {
-            playButton.textContent = 'Play';
-            playButton.onclick = () => {
-              localStorage.setItem("playedUUID", game.uuid);
-              window.location.href = `/game/${game.uuid}`;
-            };
-          } else {
-            playButton.textContent = 'Game already played';
-          }
+                const actionsCell = document.createElement('td');
+                const showButton = document.createElement('button');
+                showButton.textContent = 'Show';
+                showButton.classList.add('table-button');
+                showButton.onclick = () => {
+                    window.location.href = `/game/${game.uuid}`;
+                };
 
-          const showButton = document.createElement('button');
-          showButton.textContent = 'Show';
-          showButton.onclick = () => {
-            window.location.href = `/game/${game.uuid}`;
-          };
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('table-button');
+                deleteButton.onclick = () => {
+                    deleteGame(game.uuid);
+                };
 
-          const deleteButton = document.createElement('button');
-          deleteButton.textContent = 'Delete';
-          deleteButton.onclick = () => {
-            deleteGame(game.uuid);
-          };
+                showButton.style.marginRight = '10px';
 
-          playButton.style.marginRight = '10px';
-          showButton.style.marginRight = '10px';
+                actionsCell.appendChild(showButton);
+                actionsCell.appendChild(deleteButton);
+                row.appendChild(actionsCell);
 
-          actionsCell.appendChild(playButton);
-          actionsCell.appendChild(showButton);
-          actionsCell.appendChild(deleteButton);
-          row.appendChild(actionsCell);
+                gamesTable.appendChild(row);
+            });
+        }
 
-          gamesTable.appendChild(row);
+        // Event listener pro vyhledávání
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchText = e.target.value.toLowerCase();
+            renderGameList();
         });
-      }
 
-      document.getElementById('sortByName').addEventListener('click', () => {
-        games.sort((a, b) => a.name.localeCompare(b.name));
-        renderGameList(games);
-      });
+        // Event listenery pro třídění
+        document.getElementById('sortByName').addEventListener('click', () => {
+            sortBy = 'name';
+            renderGameList();
+        });
 
-      document.getElementById('sortByDate').addEventListener('click', () => {
-        games.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        renderGameList(games);
-      });
+        document.getElementById('sortByDate').addEventListener('click', () => {
+            sortBy = 'date';
+            renderGameList();
+        });
 
-      document.getElementById('sortByDifficulty').addEventListener('click', () => {
-        const difficultyOrder = {
-          "Beginner": 1,
-          "Easy": 2,
-          "Advanced": 3,
-          "Hard": 4,
-          "The hardest": 5
-        };
-        games.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
-        renderGameList(games);
-      });
+        // Počáteční vykreslení seznamu her
+        renderGameList();
     })
     .catch(error => {
-      console.error('Error fetching saved games:', error);
+        console.error('Error fetching saved games:', error);
     });
 
     function deleteGame(gameUuid) {

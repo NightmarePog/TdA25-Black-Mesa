@@ -163,9 +163,9 @@ def handle_turn_timeout(app, socketio_instance, game_uuid, expected_turn):
                 'game_status': game.game_state,
                 'winner': game.winnerId
             }, room=game_uuid, namespace='/')
-            for p in players:
-                if p['role'] != 'viewer':
-                    save_game(game, p["user_id"])
+            #for p in players:
+            #    if p['role'] != 'viewer':
+             #       save_game(game, p["user_id"])
             if game.uuid in turn_timers:
                 del turn_timers[game.uuid]
 

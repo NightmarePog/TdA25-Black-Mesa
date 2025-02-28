@@ -3,206 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
+    <title>ThinkTacToe - Saved Game</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Zachováno stejné CSS jako v multiplayer_game.html */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Dosis', sans-serif;
         }
-
         body {
-            background-color: #F6F6F6;
+            font-family: "Dosis", sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             flex-direction: column;
+            align-items: center;
             color: #1A1A1A;
-            text-align: center;
             position: relative;
         }
-
-        .game-info-container {
+        .header {
+            width: 100%;
+            padding: 15px 0;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo {
+            width: 120px;
+            margin-left: 5%;
+        }
+        .game-container {
+            margin-top: 120px;
             width: 100%;
             max-width: 1000px;
-            margin-bottom: 5px; 
+            padding: 20px;
+        }
+        .game-main {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            justify-content: center;
             flex-wrap: wrap;
-            justify-content: center;
         }
-
+        .info-panel {
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: 100%;
+            min-height: 494px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 1rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
         .game-info {
-            background-color: #FFFFFF;
-            padding: 5px 10px; 
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 0rem; 
-            font-weight: bold;
-            color: #AB2E58;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 5px;
-            width: 22%; /* Adjusted to fit four blocks side by side */
-        }
-
-        #gameStatusContainer, #turnContainer, #gameStateContainer {
-            font-size: 1.2rem;
-        }
-
-        #gameStatusContainer {
-            color: #AB2E58;
-        }
-
-        #gameStateContainer {
-            color: #AB2E58;
-        }
-
-        .board {
-            display: grid;
-            grid-template-columns: repeat(15, 30px); 
-            grid-template-rows: repeat(15, 30px); 
-            gap: 3px;
-            margin-top: 15px; 
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 0.8rem;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            justify-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            text-align: left;
         }
-
-        .cell {
-            width: 30px; 
-            height: 30px; 
-            border: 1px solid #395A9A;
-            background-color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-        }
-
-        .cell:hover {
-            transform: scale(1.05);
-        }
-
-        .cell.x {
-            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .cell.o {
-            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .game-btn {
-            margin-top: 25px; 
-            padding: 8px 16px;
-            font-size: 1rem;
-            color: #FFFFFF;
-            background-color: #395A9A;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .game-btn:hover {
-            background-color: #1A3C6C;
-        }
-
         .player-list {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #FFFFFF;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            width: 200px;
-            font-size: 1rem;
+            padding: 0.8rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            text-align: left;
+            overflow-y: auto;
         }
-
         .player-item {
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 4px;
+            padding: 0.8rem;
+            margin: 0.3rem 0;
+            border-radius: 8px;
+            background: transparent;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.2s ease;
+            cursor: default;
         }
-
         .player-item.turn {
-            background-color: #395A9A;
-            color: #FFFFFF;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 112, 187, 0.3);
         }
-
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 28px);
+            grid-template-rows: repeat(15, 28px);
+            gap: 3px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            margin: 0;
+        }
+        .cell {
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(0, 112, 187, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .cell.x {
+            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
+            background-size: 80%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .cell.o {
+            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
+            background-size: 80%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .game-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .game-btn:hover {
+            background: rgba(227, 24, 55, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+        }
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: repeat(15, 20px);
+                grid-template-rows: repeat(15, 20px);
+            }
+            .cell {
+                width: 20px;
+                height: 20px;
+            }
+            .game-main {
+                flex-direction: column;
+                align-items: center;
+            }
+            .info-panel {
+                width: 100%;
+                margin-top: 1rem;
+                height: auto;
+            }
+        }
         #waveCanvas {
             position: fixed;
             top: 0;
             left: 0;
             z-index: -1;
         }
-
-        @media (max-width: 600px) {
-            .game-info-container {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .game-info {
-                width: 80%;
-                margin: 5px 0;
-                font-size: 0.8rem; 
-            }
-
-            .board {
-                grid-template-columns: repeat(15, 25px); 
-                grid-template-rows: repeat(15, 25px);
-            }
-
-            .cell {
-                width: 25px;
-                height: 25px;
-            }
-
-            .player-list {
-                top: 10px;
-                right: 10px;
-                width: 150px;
-                font-size: 0.9rem;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="game-info-container">
-        <div id="gameStatusContainer" class="game-info">
-            <span>Status: </span><span id="gameStatus">Waiting for players...</span>
+    <div id="background-container"></div>
+    <header class="header">
+        <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo" />
+    </header>
+    <div class="game-container">
+        <div class="game-main">
+            <!-- Herní deska -->
+            <div class="board-container">
+                <div id="board" class="board"></div>
+            </div>
+            <!-- Info panel -->
+            <div class="info-panel">
+                <div class="game-info">
+                    <span>Status: </span><span id="gameStatus">Loading...</span>
+                </div>
+                <div class="game-info">
+                    <span>Turn: </span><span id="turn">X</span>
+                </div>
+                <div class="game-info">
+                    <span>Game State: </span><span id="gameState">Initializing...</span>
+                </div>
+                <div class="player-list" id="playerList"></div>
+            </div>
         </div>
-        <div id="turnContainer" class="game-info">
-            <span>Turn: </span><span id="turn">X</span>
-        </div>
-        <div id="gameStateContainer" class="game-info">
-            <span id="gameState">Initializing...</span>
+        <div class="controls">
+            <button id="menuButton" class="game-btn">Main Menu</button>
         </div>
     </div>
-
-    <div id="board" class="board"></div>
-    <div class="player-list" id="playerList"></div>
-    <button id="menuButton" class="game-btn">Go to main page</button>
     <canvas id="waveCanvas"></canvas>
     <script src="/static/js/waves.js"></script>
 
     <script>
+        // Původní logika ze saved_game.html s úpravami
         const playedUUID = localStorage.getItem("playedUUID");
         const username = localStorage.getItem('username');
         const userId = localStorage.getItem('userId');
@@ -212,34 +233,31 @@
         const cont = playedUUID === uuid;
         let gameData = null;
         let playerRole = "";
-        let gameName = "";
         let currentTurn = "X";
         let winner = "";
         let winnerName = "";
         let playerList = [];
-        let gameCode = "local";
         let board = Array(15).fill(null).map(() => Array(15).fill(null));
 
-        if (cont) {
+        // DOM elementy
+        const boardElement = document.getElementById('board');
+        const gameStatusElement = document.getElementById('gameStatus');
+        const turnElement = document.getElementById('turn');
+        const gameStateElement = document.getElementById('gameState');
+        const playerListElement = document.getElementById('playerList');
 
-        }
-
-        // Získání referencí na prvky na stránce
-        const boardElement = document.getElementById("board");
-        const gameCodeElement = document.getElementById("gameCode");
-        const gameStatusElement = document.getElementById("gameStatus");
-        const turnElement = document.getElementById("turn");
-        const playerListElement = document.getElementById("playerList");
-        const gameStateElement = document.getElementById("gameState");
-
-
-        if (!userId) {
-            window.location.href = '/login';
-        }
+        // API endpointy
+        const API_BASE_URL = "/api/v1/";
+        const SAVED_GAME_API_URL = `${API_BASE_URL}users/saved_games/${localStorage.getItem("userId")}/${uuid}`;
+        const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
 
         if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
             handleLogout();
         }
+
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
 
         function handleLogout() {
             if (isGuest) {
@@ -247,233 +265,137 @@
             }
             localStorage.clear();
             sessionStorage.clear();
+            fetch("/api/v1/users/logout", {method: "GET"});
             window.location.href = '/login';
         }
 
         function deleteGuestAccount() {
-            fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Guest account deleted.');
-                    } else {
-                        console.error('Failed to delete guest account.');
-                    }
-                })
-                .catch(err => console.error('Error deleting guest account:', err));
+        fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+            .then(response => {
+            if (response.ok) {
+                console.log('Guest account deleted.');
+            } else {
+                console.error('Failed to delete guest account.');
+            }
+            })
+            .catch(err => console.error('Error deleting guest account:', err));
         }
-
-        window.addEventListener('beforeunload', () => {
-            localStorage.removeItem("playerUUID"); 
-            localStorage.setItem('time_from_leaving', Date.now());
-        });
-
-        // API endpointy
-        const API_BASE_URL = "/api/v1/"; // Uprav podle své konfigurace
-        const SAVED_GAME_API_URL = `${API_BASE_URL}users/saved_games/${localStorage.getItem("userId")}/${uuid}`;
-        const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
         async function getGameData() {
             try {
-                const response = await fetch(`${SAVED_GAME_API_URL}`, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                });
-
+                const response = await fetch(SAVED_GAME_API_URL);
                 if (response.ok) {
-                    const gameData = await response.json();
-                    if (gameData.winnerId !== null && cont) {
-                        window.location.href = '/menu';
-                    }
-                    const xCount = gameData.board.flat().filter(cell => cell === "X").length;
-                    const oCount = gameData.board.flat().filter(cell => cell === "O").length;
-
-                    // "X" always starts, so if counts are equal, it's "X"'s turn; otherwise, it's "O"'s turn.
-                    const currentTurn1 = xCount === oCount ? "X" : "O";
-                    currentTurn = currentTurn1
+                    gameData = await response.json();
                     updateGameState(gameData);
-                } else {
-                    console.error("Chyba při posílání tahu:", response.statusText);
+                    drawBoard();
                 }
             } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
-        }
-        getGameData();
-
-        // Inicializace herního plánu
-        function createBoard() {
-            boardElement.innerHTML = "";
-            for (let row = 0; row < 15; row++) {
-                for (let col = 0; col < 15; col++) {
-                    const cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-                    boardElement.appendChild(cell);
-
-                    // Kliknutí na buňku
-                    if (cont) {
-                        cell.addEventListener("click", () => handleCellClick(row, col));
-                    }
-                }
+                console.error("Error:", error);
             }
         }
 
-        // Zpracování herního stavu
         function updateGameState(gameData) {
             board = gameData.board;
             playerList = gameData.players;
-            winnerId = gameData.winnerId;
-
-            // Aktualizace UI
+            currentTurn = calculateCurrentTurn(gameData.board);
+            
+            gameStatusElement.textContent = gameData.winnerId 
+                ? `Winner: ${getWinnerName(gameData.winnerId)}` 
+                : "Playing";
+            
             turnElement.textContent = currentTurn;
-            console.log(winnerId)
-            if (winnerId !== null) {
-                console.log("winnerId is not null")
-                console.log(playerList)
-
-                for (value in playerList) {
-                    console.log(playerList[value].user_id === winnerId)
-                    if (playerList[value].user_id === winnerId) {
-                        gameStatusElement.textContent = playerList[value].username + " won!";
-                    }
-                }
-            } else {
-                gameStatusElement.textContent = "Playing";
-            }
-
-            if (gameData.gameState) {
-                if (gameData.gameState === "opening") {
-                    gameState.innerText = "It's warming up";
-                } else if (gameData.gameState === "midgame") {
-                    gameState.innerText = "Thrilling";
-                } else if (gameData.gameState === "endgame") {
-                    gameState.innerText = "Could it be the end?";
-                } else {
-                    gameState.innerText = gameData.gameState;
-                }
-            }
-
-            // Zobrazení hráčů
+            updateGameStateText(gameData.gameState);
             updatePlayerList();
-
-            // Aktualizace herního plánu
-            updateBoardUI(winnerId);
         }
 
-        // Aktualizace UI herního plánu
-        function updateBoardUI(winnerId) {
-            const boardElement = document.getElementById('board');
-            boardElement.innerHTML = '';
+        function calculateCurrentTurn(board) {
+            const xCount = board.flat().filter(cell => cell === "X").length;
+            const oCount = board.flat().filter(cell => cell === "O").length;
+            return xCount === oCount ? "X" : "O";
+        }
 
+        function getWinnerName(winnerId) {
+            // Convert playerList to array if it's not already
+            const playersArray = Array.isArray(playerList) ? playerList : Object.values(playerList || {});
+            const winner = playersArray.find(player => player && player.user_id === winnerId);
+            return winner ? winner.username : "Unknown";
+        }
+
+        function updateGameStateText(state) {
+            const states = {
+                "opening": "It's warming up",
+                "midgame": "Thrilling",
+                "endgame": "Could it be the end?"
+            };
+            gameStateElement.textContent = states[state] || state;
+        }
+
+        function drawBoard() {
+            boardElement.innerHTML = '';
             board.forEach((row, rowIndex) => {
                 row.forEach((cell, colIndex) => {
                     const cellElement = document.createElement('div');
                     cellElement.classList.add('cell');
-                    if (cell) {
-                        cellElement.classList.add(cell.toLowerCase());
+                    if (cell) cellElement.classList.add(cell.toLowerCase());
+                    
+                    if (cont && !cell && !winner) {
+                        cellElement.addEventListener('click', () => handleCellClick(rowIndex, colIndex));
+                    } else {
+                        cellElement.style.cursor = 'not-allowed';
                     }
-
-                    if (cont) {
-                        if (winnerId === null) {
-                            cellElement.addEventListener('click', () => handleCellClick(rowIndex, colIndex));
-                        } else {
-                            cellElement.style.cursor = 'not-allowed';
-                        }
-                    }
-
                     boardElement.appendChild(cellElement);
                 });
             });
-
-            for (let row = 0; row < 15; row++) {
-                for (let col = 0; col < 15; col++) {
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    if (board[row][col] === "X") {
-                        cell.classList.add("x");
-                    } else if (board[row][col] === "O") {
-                        cell.classList.add("o");
-                    } else {
-                        cell.classList.remove("x", "o");
-                    }
-                }
-            }
         }
 
-        // Kliknutí na buňku
         async function handleCellClick(row, col) {
-            if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
-                return;
-            }
+            if (board[row][col] || winner) return;
             
             board[row][col] = currentTurn;
-            console.log(board)
+            currentTurn = currentTurn === "X" ? "O" : "X";
             
-            if (currentTurn === "X") {
-                currentTurn = "O";
-            } else {
-                currentTurn = "X";
-            }
-
-            console.log(GAME_API_URL)
             try {
-                const response = await fetch(`${GAME_API_URL}`, {
+                const response = await fetch(GAME_API_URL, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "board": board, "difficulty": gameData.difficulty, name: gameData.name, "save_game_to_user": localStorage.getItem('userId') }),
+                    body: JSON.stringify({ 
+                        board: board,
+                        difficulty: gameData.difficulty,
+                        name: gameData.name,
+                        save_game_to_user: userId
+                    }),
                 });
-
+                
                 if (response.ok) {
-                    const gameData = await response.json();
-                    updateGameState(gameData);
-                } else {
-                    console.error("Chyba při posílání tahu:", response.statusText);
+                    const updatedData = await response.json();
+                    updateGameState(updatedData);
+                    drawBoard();
                 }
             } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
+                console.error("Error:", error);
             }
         }
 
-        async function fetchGameState() {
-            try {
-                const response = await fetch(GAME_API_URL);
-                if (response.ok) {
-                    gameData = await response.json();
-                } else {
-                    console.error("Chyba při načítání herního stavu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
-        }
-
-        // Aktualizace seznamu hráčů
         function updatePlayerList() {
-           try {
-            playerListElement.innerHTML = "";
-            playerList.forEach((player) => {
-                const playerItem = document.createElement("div");
-                playerItem.classList.add("player-item");
-                if (player.turn === currentTurn) {
-                    playerItem.classList.add("turn");
-                }
-                playerItem.textContent = player.username;
-                playerListElement.appendChild(playerItem);
-            });
-           } catch (error) {
-                return false
-           }
+            // Převedení na pole a filtrace neplatných záznamů
+            const playersArray = (Array.isArray(playerList) ? playerList : Object.values(playerList || {}).filter(player => player && player.username));
+
+            // Kontrola existence elementu
+            if (!playerListElement) return;
+
+            // Generování HTML s výchozími hodnotami
+            playerListElement.innerHTML = playersArray.map(player => `
+                <div class="player-item ${currentTurn === (player.role || '') ? 'turn' : ''}">
+                    <span>${player.username || 'Unknown Player'}</span>
+                    ${player.role ? `<span>${player.role}</span>` : ''}
+                </div>
+            `).join('');
         }
 
-        // Načtení iniciálního herního stavu
-        createBoard();
-        fetchGameState();
-
-        // Opakované aktualizace herního stavu
-        setInterval(fetchGameState, 2000);
-
-
+        // Inicializace
+        if (!userId) window.location.href = '/login';
+        getGameData();
         document.getElementById("menuButton").addEventListener("click", () => {
-            window.location.href = `/menu`;
+            window.location.href = '/menu';
         });
     </script>
 </body>

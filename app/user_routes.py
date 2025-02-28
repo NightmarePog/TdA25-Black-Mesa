@@ -27,6 +27,23 @@ def register_user():
         return response, cd
     elif cd == 400 or cd == 422:
         abort(cd, description=mes)
+
+
+from flask import make_response
+
+@user_bp.route('/logout', methods=['GET'])
+def logout():
+    response = make_response("Odhlášeno")
+    response.set_cookie(
+        'auth_token',
+        value='',  # Prázdná hodnota
+        expires=0,  # Expirace v minulosti
+        httponly=True,
+        secure=True,
+        samesite='Strict'
+    )
+    return response
+
     
 @user_bp.route('', methods=['GET'])
 def get_all_users():
@@ -180,6 +197,11 @@ def get_score(user_uuid):
         'rating': user.elo
     }
     return jsonify(user_stats)
+
+@user_bp.route('/getBannedUsers', methods=['GET'])
+def get_banned_users():
+    banned_users = User.query.filter_by(ban=True).all()
+    return jsonify([user_to_dict(user) for user in banned_users]), 200
 
 @user_bp.route('/get_users', methods=['POST'])
 def get_users():

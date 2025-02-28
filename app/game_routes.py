@@ -113,12 +113,13 @@ def update_game(uuid):
         else:
             game.game_state = determine_game_state(data['board'])
         db.session.commit()
+        '''
         if game.isLocal:
             save_game(game, players[0]["user_id"])
         else:
             for player in players:
                 save_game(game, player["user_id"])
-            '''
+            
         if game.winnerId is not None and not game.isLocal:
             print("UPDATE RATING")
             if game.winnerId == players[0]['user_id']:

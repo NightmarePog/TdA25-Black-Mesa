@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - Game Portal</title>
+    <title>ThinkTacToe - Users</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* Zachování všech původních stylů z menu.css */
@@ -294,11 +294,14 @@
 
             <table class="user-table">
                 <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
+                  <tr>
+                      <th>Username</th>
+                      <th>ELO</th>
+                      <th>Wins</th>
+                      <th>Losses</th>
+                      <th>Draws</th>
+                      <th>Actions</th>
+                  </tr>
                 </thead>
                 <tbody id="usersBody"></tbody>
             </table>
@@ -338,6 +341,7 @@
 
       document.getElementById('logout').addEventListener('click', () => {
           if (isGuest) fetch(`/api/v1/users/${userId}`, { method: 'DELETE' });
+          fetch("/api/v1/users/logout", {method: "GET"});
           localStorage.clear();
           window.location.href = '/login';
       });
@@ -362,26 +366,30 @@
       });
 
       function renderUsers(users) {
-            const tbody = document.getElementById('usersBody');
-            tbody.innerHTML = '';
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.username}</td>
-                    <td>${user.ban ? '🔴 Banned' : '🟢 Active'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button onclick="viewProfile('${user.uuid}')" class="table-button profile-btn">Profile</button>
-                            ${isAdminUser ? `
-                                <button onclick="deleteUser('${user.uuid}')" class="table-button delete-btn">Delete</button>
-                                <button onclick="banUser('${user.uuid}')" class="table-button ban-btn">${user.ban ? 'Unban' : 'Ban'}</button>
-                            ` : ''}
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+        const tbody = document.getElementById('usersBody');
+        tbody.innerHTML = '';
+        users.forEach(user => {
+            const usernameDisplay = user.ban ? `${user.username} (Banned)` : user.username;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${usernameDisplay}</td>
+                <td>${user.elo}</td>
+                <td>${user.wins}</td>
+                <td>${user.losses}</td>
+                <td>${user.draws}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button onclick="viewProfile('${user.uuid}')" class="table-button profile-btn">Profile</button>
+                        ${isAdminUser ? `
+                            <button onclick="deleteUser('${user.uuid}')" class="table-button delete-btn">Delete</button>
+                            <button onclick="banUser('${user.uuid}')" class="table-button ban-btn">${user.ban ? 'Unban' : 'Ban'}</button>
+                        ` : ''}
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
     function loadUsers(min, max) {
       isSearching = false;
@@ -418,7 +426,7 @@
     }
 
     function loadBannedUsers() {
-      fetch('/api/v1/users/')
+      fetch('/api/v1/users/getBannedUsers')
       .then(response => response.json())
       .then(data => {
         const bannedUsers = data.filter(user => user.ban);
