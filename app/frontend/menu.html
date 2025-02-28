@@ -19,19 +19,21 @@
         }
 
         .header {
-            width: 100%;
-            padding: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            position: fixed;
-            top: 0;
-            z-index: 1000;
+        width: 100%;
+        padding: 15px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        position: fixed;
+        top: 0;
+        z-index: 1000;
+        left: 0;
+        right: 0;
         }
 
         .logo {
@@ -39,34 +41,6 @@
             margin-left: 5%;
         }
 
-        .nav-container {
-            display: flex;
-            gap: 2rem;
-            margin-right: 5%;
-        }
-
-        .nav-button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(0, 112, 187, 0.9);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .nav-button:hover {
-            background: rgba(227, 24, 55, 0.9);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
-        }
 
         .content-area {
             flex: 1;
@@ -246,43 +220,95 @@
             left: 0;
             z-index: -1;
         }
+
+      .nav-container {
+      display: flex;
+      gap: 2rem;
+      margin-right: 5%;
+  }
+
+  .nav-button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0, 112, 187, 0.9);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-button:hover {
+            background: rgba(227, 24, 55, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+        }
+
+        .nav-button img {
+      width: 20px;
+      height: 20px;
+      filter: invert(1) brightness(2);
+      -webkit-filter: invert(1) brightness(2);
+      transition: transform 0.3s ease;
+  }
     </style>
 </head>
 <body>
     <div id="background-container"></div>
     
     <header class="header">
-        <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
-        <div class="nav-container">
-            <div class="user-menu">
-                <div class="user-button" id="userButton">
-                    <span id="nickname">Loading...</span>
-                    <img src="static/picture/zarivka_idea_cerne.svg" alt="User" style="width:20px;filter:invert(1)">
-                </div>
-                <div class="dropdown-menu" id="dropdownMenu">
-                    <div class="stats">
-                        <div class="stats-item">
-                            <span>Wins:</span>
-                            <span id="wins">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span>Draws:</span>
-                            <span id="draws">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span>Losses:</span>
-                            <span id="losses">0</span>
-                        </div>
-                        <div class="stats-item">
-                            <span>ELO Rating:</span>
-                            <span id="elo">0</span>
-                        </div>
-                    </div>
-                    <button class="action-button logout-button" id="logout">Log Out</button>
-                </div>
-            </div>
-        </div>
-    </header>
+      <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
+      <nav class="nav-container">
+          
+          <button class="nav-button" onclick="showForm('guest')">
+              <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
+              Settings
+          </button>
+          <button class="nav-button" onclick="showForm('login')">
+              <img src="static/picture/zarivka_playing_cerne.svg" alt="Login">
+              Player list
+          </button>
+          <button class="nav-button" onclick="showForm('register')">
+              <img src="static/picture/zarivka_thinking_cerne.svg" alt="Sign Up">
+              Profile
+          </button>
+
+          <div class="user-menu">
+              <div class="user-button" id="userButton">
+                  <span id="nickname">Loading...</span>
+                  <img src="static/picture/zarivka_idea_cerne.svg" alt="User" style="width:20px;filter:invert(1)">
+              </div>
+              <div class="dropdown-menu" id="dropdownMenu">
+                  <div class="stats">
+                      <div class="stats-item">
+                          <span>Wins:</span>
+                          <span id="wins">0</span>
+                      </div>
+                      <div class="stats-item">
+                          <span>Draws:</span>
+                          <span id="draws">0</span>
+                      </div>
+                      <div class="stats-item">
+                          <span>Losses:</span>
+                          <span id="losses">0</span>
+                      </div>
+                      <div class="stats-item">
+                          <span>ELO Rating:</span>
+                          <span id="elo">0</span>
+                      </div>
+                  </div>
+                  <button class="action-button logout-button" id="logout">Log Out</button>
+              </div>
+          </div>
+
+      </nav>
+  </header>
 
     <div class="content-area">
         <div class="game-container">

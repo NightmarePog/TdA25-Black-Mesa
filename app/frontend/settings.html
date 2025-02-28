@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="static/styles/menu.css">
+</head>
+<body>
+    <header class="header">
+        <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
+        <nav class="nav-container">
+            
+            <button class="nav-button" onclick="showForm('guest')">
+                <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
+                Settings
+            </button>
+            <button class="nav-button" onclick="showForm('login')">
+                <img src="static/picture/zarivka_playing_cerne.svg" alt="Login">
+                Player list
+            </button>
+            <button class="nav-button" onclick="showForm('register')">
+                <img src="static/picture/zarivka_thinking_cerne.svg" alt="Sign Up">
+                Profile
+            </button>
+
+            <div class="user-menu">
+                <div class="user-button" id="userButton">
+                    <span id="nickname">Loading...</span>
+                    <img src="static/picture/zarivka_idea_cerne.svg" alt="User" style="width:20px;filter:invert(1)">
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="stats">
+                        <div class="stats-item">
+                            <span>Wins:</span>
+                            <span id="wins">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>Draws:</span>
+                            <span id="draws">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>Losses:</span>
+                            <span id="losses">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>ELO Rating:</span>
+                            <span id="elo">0</span>
+                        </div>
+                    </div>
+                    <button class="action-button logout-button" id="logout">Log Out</button>
+                </div>
+            </div>
+
+        </nav>
+    </header>
+    <canvas id="waveCanvas"></canvas>
+    <script src="/static/js/waves.js"></script>
+    <script>
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        const isGuest = localStorage.getItem('isGuest') === 'true';
+    
+        // Pokud je uživatel host, skryjeme určitý obsah
+        if (isGuest) {
+            const rankedSelect = document.getElementById('ranked');
+            if (rankedSelect) {
+                const rankedRow = rankedSelect.closest('tr');
+                rankedRow.style.display = 'none';
+            }
+        }
+    
+        localStorage.removeItem('playedUUID');
+    
+        // Pokud není userId, přesměruj na přihlášení
+        if (!userId) {
+            window.location.href = '/login';
+        } else {
+            document.getElementById('nickname').textContent = username || 'Unknown Player';
+        }
+    
+        // Ověření, zda je uživatel zablokován
+        fetch(`/api/v1/users/${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    console.error('API call to /api/v1/users/${userId} failed with status:', response.status);
+                    return;
+                }
+                return response.json();
+            })
+            .then(userData => {
+                if (userData && userData.ban) {
+                    const banIndicator = document.createElement('span');
+                    banIndicator.textContent = ' (BANNED)';
+                    banIndicator.style.color = '#E31837';
+                    banIndicator.style.marginLeft = '5px';
+                    document.getElementById('nickname').appendChild(banIndicator);
+                }
+            })
+            .catch(error => console.error('Error checking ban status:', error));
+    
+        // Načítání statistik hráče
+        fetch(`/api/v1/users/get_score/${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    console.error('API call to /api/v1/users/get_score/${userId} failed with status:', response.status);
+                    return;
+                }
+                return response.json();
+            })
+            .then(stats => {
+                document.getElementById('wins').textContent = stats.wins;
+                document.getElementById('draws').textContent = stats.draws;
+                document.getElementById('losses').textContent = stats.losses;
+                document.getElementById('elo').textContent = stats.rating;
+            })
+            .catch(error => console.error('Error loading stats:', error));
+    
+        // Před opuštěním stránky uložíme čas odchodu
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+    
+        // Funkce pro logout
+        document.getElementById('logout').addEventListener('click', () => {
+            handleLogout();
+        });
+    
+        function handleLogout() {
+            if (isGuest) {
+                deleteGuestAccount();
+            }
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login';
+        }
+    
+        function deleteGuestAccount() {
+            fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Guest account deleted.');
+                    } else {
+                        console.error('Failed to delete guest account.');
+                    }
+                })
+                .catch(err => console.error('Error deleting guest account:', err));
+        }
+
+        document.getElementById('userButton').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('dropdownMenu').classList.toggle('show');
+        });
+
+        window.addEventListener('click', function(e) {
+        if (!document.getElementById('userButton').contains(e.target)) {
+            document.getElementById('dropdownMenu').classList.remove('show');
+        }
+    });
+    </script>
+    
+</body>
+</html>
