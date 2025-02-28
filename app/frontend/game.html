@@ -6,10 +6,7 @@
   <title>Game Portal - Match</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <link rel="icon" type="/static/picture/X_cervene.svg" href="/static/picture/X_cervene.svg">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     /* Základní styly */
     * {
@@ -29,26 +26,29 @@
     }
 
     .header {
-          width: 100%;
-          padding: 15px 0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-          position: fixed;
-          top: 0;
-          z-index: 1000;
-          left: 0;
-          right: 0;
+      width: 100%;
+      padding: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+      left: 0;
+      right: 0;
     }
 
     .logo {
       width: 120px;
       margin-left: 5%;
+      position: absolute;
+      left: 20px;
+      top: 10px;
     }
 
     /* Kontejner pro herní obsah (deska + info panel) */
@@ -61,16 +61,13 @@
     .game-main {
       display: flex;
       gap: 20px;
-      /* Zarovnání do stejné výšky */
       align-items: stretch;
       justify-content: center;
       flex-wrap: wrap;
     }
 
     .info-panel {
-      /* Šířka panelu */
       flex: 0 0 300px;
-      /* Umožní roztáhnout se do výšky kontejneru (stejně jako deska) */
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -134,7 +131,7 @@
       text-align: left;
     }
 
-    /* Upravený styl pro seznam hráčů, aby odpovídal ostatním prvkům */
+    /* Upravený styl pro seznam hráčů */
     .player-list {
       margin-top: 1rem;
       background: rgba(255, 255, 255, 0.8);
@@ -218,7 +215,7 @@
 <body>
   <div id="background-container"></div>
   <header class="header">
-    <img src="static/picture/logo_cerna.svg" class="game_logo" alt="Game Logo" />
+    <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo" />
   </header>
 
   <div class="game-container">
@@ -276,66 +273,8 @@
       window.location.href = "/login";
     }
 
-    function handleLogout() {
-      if (isGuest) {
-        deleteGuestAccount();
-      }
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "/login";
-    }
-
-    function deleteGuestAccount() {
-      fetch(`/api/v1/users/${userId}`, { method: "DELETE" })
-        .then((response) => {
-          if (response.ok) {
-            console.log("Guest account deleted.");
-          } else {
-            console.error("Failed to delete guest account.");
-          }
-        })
-        .catch((err) => console.error("Error deleting guest account:", err));
-    }
-
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("time_from_leaving", Date.now());
-    });
-
     const API_BASE_URL = "/api/v1/";
     const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
-
-    async function getGameData() {
-      try {
-        const response = await fetch(GAME_API_URL, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (response.ok) {
-          const gameData = await response.json();
-          updateGameState(gameData);
-        } else {
-          console.error("Chyba při posílání tahu:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Chyba při komunikaci s API:", error);
-      }
-    }
-    getGameData();
-
-    function createBoard() {
-      boardElement.innerHTML = "";
-      for (let row = 0; row < 15; row++) {
-        for (let col = 0; col < 15; col++) {
-          const cell = document.createElement("div");
-          cell.classList.add("cell");
-          cell.dataset.row = row;
-          cell.dataset.col = col;
-          boardElement.appendChild(cell);
-
-          cell.addEventListener("click", () => handleCellClick(row, col));
-        }
-      }
-    }
 
     async function fetchGameState() {
       try {
@@ -353,34 +292,27 @@
 
     function updateGameState(gameData) {
       board = gameData.board;
-      playerList = gameData.players;
+      playerList = JSON.parse(gameData.players || "[]");
       const winnerId = gameData.winnerId;
 
+      currentTurn = gameData.currentTurn || "X";
       turnElement.textContent = currentTurn;
 
       if (winnerId !== null) {
-        playerList.forEach((player) => {
-          if (player.user_id === winnerId) {
-            gameStatusElement.textContent = player.username + " won!";
-          }
-        });
+        const winnerPlayer = playerList.find(player => player.user_id === winnerId);
+        gameStatusElement.textContent = winnerPlayer ? `${winnerPlayer.username} won!` : "Game Over";
       } else {
         gameStatusElement.textContent = "Playing";
       }
 
       if (gameData.gameState) {
-        if (gameData.gameState === "opening") {
-          gameStateElement.textContent = "It's warming up";
-        } else if (gameData.gameState === "midgame") {
-          gameStateElement.textContent = "Thrilling";
-        } else if (gameData.gameState === "endgame") {
-          gameStateElement.textContent = "Could it be the end?";
-        } else {
-          gameStateElement.textContent = gameData.gameState;
-        }
+        gameStateElement.textContent = {
+          opening: "It's warming up",
+          midgame: "Thrilling",
+          endgame: "Could it be the end?"
+        }[gameData.gameState] || gameData.gameState;
       }
 
-      // Aktualizace seznamu hráčů s vizuálním označením aktuálního tahu
       updatePlayerList();
       updateBoardUI(winnerId);
     }
@@ -391,14 +323,15 @@
         row.forEach((cell, colIndex) => {
           const cellElement = document.createElement("div");
           cellElement.classList.add("cell");
+          cellElement.dataset.row = rowIndex;
+          cellElement.dataset.col = colIndex;
+
           if (cell) {
             cellElement.classList.add(cell.toLowerCase());
           }
 
           if (winnerId === null) {
-            cellElement.addEventListener("click", () =>
-              handleCellClick(rowIndex, colIndex)
-            );
+            cellElement.addEventListener("click", () => handleCellClick(rowIndex, colIndex));
           } else {
             cellElement.style.cursor = "not-allowed";
           }
@@ -406,43 +339,22 @@
           boardElement.appendChild(cellElement);
         });
       });
-
-      // Vykreslení X a O
-      for (let row = 0; row < 15; row++) {
-        for (let col = 0; col < 15; col++) {
-          const cell = document.querySelector(
-            `.cell[data-row="${row}"][data-col="${col}"]`
-          );
-          if (board[row][col] === "X") {
-            cell.classList.add("x");
-          } else if (board[row][col] === "O") {
-            cell.classList.add("o");
-          } else {
-            cell.classList.remove("x", "o");
-          }
-        }
-      }
     }
 
     async function handleCellClick(row, col) {
-      if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
-        return;
-      }
-
-      board[row][col] = currentTurn;
-      currentTurn = currentTurn === "X" ? "O" : "X";
+      if (board[row][col] || winner) return;
 
       try {
         const response = await fetch(GAME_API_URL, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            board: board,
-            difficulty: gameData.difficulty,
-            name: gameData.name,
-            save_game_to_user: localStorage.getItem("userId"),
+            row: row,
+            col: col,
+            playerId: userId
           }),
         });
+
         if (response.ok) {
           const gameData = await response.json();
           updateGameState(gameData);
@@ -459,13 +371,27 @@
       playerList.forEach((player) => {
         const playerItem = document.createElement("div");
         playerItem.classList.add("player-item");
-        // Zobrazí se jméno hráče s informací o značce (X nebo O)
         playerItem.textContent = `${player.username} (${player.role})`;
         if (player.role === currentTurn) {
           playerItem.classList.add("turn");
         }
         playerListElement.appendChild(playerItem);
       });
+    }
+
+    function createBoard() {
+      boardElement.innerHTML = "";
+      for (let row = 0; row < 15; row++) {
+        for (let col = 0; col < 15; col++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          boardElement.appendChild(cell);
+
+          cell.addEventListener("click", () => handleCellClick(row, col));
+        }
+      }
     }
 
     createBoard();
