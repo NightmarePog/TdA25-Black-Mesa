@@ -36,13 +36,6 @@ def create_app():
             'username': 'TdA',
             'email': "tda@scg.cz",
             'password': "StudentCyberGames25!"})
-        
-        for i in range(61):
-            User.register({
-                'loginBy': 1,
-                'username': f'user{i}',
-                'email': f'asd{i}@email.com',
-                "password": "1234"})
                 
         print(a, b)
         print("Database initialized")
