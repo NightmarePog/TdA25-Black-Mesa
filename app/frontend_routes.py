@@ -55,3 +55,8 @@ def user_page(uuid):
 @frontend_bp.route('/leaderboard')
 def leaderboard():
     return render_template('leaderboard.html')
+
+@frontend_bp.route('/settings')
+def settings():
+    return render_template('settings.html')
+
