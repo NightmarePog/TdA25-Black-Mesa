@@ -463,7 +463,7 @@
     });
 
     // Na začátek scriptu po získání userId
-fetch(`/api/v1/users/${userId}`)
+fetch(`https://${window.location.host}/api/v1/users/${userId}`)
   .then(response => response.json())
   .then(userData => {
     if (userData.ban) {
@@ -477,7 +477,7 @@ fetch(`/api/v1/users/${userId}`)
   .catch(error => console.error('Error checking ban status:', error));
 
 // Načtení statistik
-fetch(`/api/v1/users/get_score/${userId}`)
+fetch(`https://${window.location.host}/api/v1/users/get_score/${userId}`)
   .then(response => response.json())
   .then(stats => {
     document.getElementById('wins').textContent = stats.wins;
@@ -517,6 +517,8 @@ fetch(`/api/v1/users/get_score/${userId}`)
         own: userId
       };
       let uuid = "";
+
+      fetch(`https://${window.location.host}/api/v1/games`, {
       
       fetch(`${window.location.origin}/api/v1/games`, {
         method: 'POST',
@@ -543,7 +545,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
     });
 
     function deleteGuestAccount() {
-      fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
+      fetch(`https://${window.location.host}/api/v1/users/${userId}`, { method: 'DELETE' })
         .then(response => {
           if (response.ok) {
             console.log('Guest account deleted.');
@@ -564,7 +566,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
       }
       localStorage.clear();
       sessionStorage.clear();
-      fetch("/api/v1/users/logout", {method: "GET"});
+      fetch("https://${window.location.host}/api/v1/users/logout", {method: "GET"});
       window.location.href = '/login';
     }
 
@@ -587,7 +589,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
         ranked: ranked
       };
 
-      fetch('/api/v1/games', {
+      fetch('https://${window.location.host}/api/v1/games', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -612,7 +614,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
     });
 
     // Načtení uložených her
-    fetch(`/api/v1/users/saved_games/${userId}`, {
+    fetch(`https://${window.location.host}/api/v1/users/saved_games/${userId}`, {
         method: 'GET'
     })
     .then(response => response.json())
@@ -698,7 +700,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
 
     function deleteGame(gameUuid) {
       if (confirm('Are you sure you want to delete this game?')) {
-        fetch(`/api/v1/users/saved_games/${userId}/${gameUuid}`, {
+        fetch(`https://${window.location.host}/api/v1/users/saved_games/${userId}/${gameUuid}`, {
           method: 'DELETE'
         })
         .then(response => {
@@ -723,7 +725,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
         return;
       }
 
-      fetch(`/api/v1/games/get_game_data_by_code/${gameCode}`, {
+      fetch(`https://${window.location.host}/api/v1/games/get_game_data_by_code/${gameCode}`, {
         method: 'GET'
       })
       .then(response => {
