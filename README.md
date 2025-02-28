@@ -37,28 +37,20 @@ naše aplikace má nadčasové funkce jako Matchmaking, ELO a mnohem víc
 6. `/multiplayer-game/<uuid>`: Multiplayer hra nebo sledování průběhu, pokud už jsou 2 hrající hráči.
 7. `/list`: list všech hráčů co jsou registrovaní
 
-### Pravidla přesměrování:
-- Nepřihlášený uživatel je automaticky přesměrován na `/login`.
-- Po přihlášení je uživatel přesměrován na `/menu`.
 
 ---
 
 ## Funkce
 
-### Lokální hra:
-- Hráč zadá obtížnost a jména Player 1 a Player 2.
-- Po kliknutí na tlačítko je přesměrován na `/game`.
+## Matchmaking
+- **prostě klikni a hraj!**
+
+## možná je někde schovaná kočička
+- **Hernik approved**
 
 ### Multiplayer hra:
 - **Vytvoření hry**: Hráč zadá obtížnost a název hry, poté je přesměrován na `/multiplayer-game/<uuid>`.
 - **Připojení ke hře**: Hráč zadá kód hry a po ověření je přesměrován na `/multiplayer-game/<uuid>`.
-
-### Uložené hry:
-- Hráč může:
-  - **Dohrát** hru kliknutím na tlačítko "Play" (pokud hra není dohraná).
-  - **Zobrazit** průběh kliknutím na "Show".
-  - **Smazat** hru kliknutím na "Delete".
-- U dohraných her tlačítko "Play" není dostupné a nahrazuje jej text "Game already played".
 
 ## Team: Black Mesa
 - **Zeno**: Full-stack developer
