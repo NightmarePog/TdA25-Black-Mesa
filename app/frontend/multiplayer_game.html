@@ -218,11 +218,15 @@
         <div class="game-info">
           <span>Game State: </span><span id="gameState">Initializing...</span>
         </div>
+        <div class="game-info">
+          <span>Time left: </span><span id="timeLeft">60</span>
+        </div>
         <div class="player-list" id="playerList"></div>
       </div>
     </div>
     <div class="controls">
       <button id="menuButton" class="game-btn">Main Menu</button>
+      <button id="surrenderButton" class="game-btn">Surrender</button>
     </div>
   </div>
   <canvas id="waveCanvas"></canvas>
@@ -239,6 +243,8 @@
     let playerList = [];
     let board = Array(15).fill(null).map(() => Array(15).fill(null));
     let gameStarted = false;
+    let countdownTimer; // Proměnná pro uchování ID intervalu
+    let timeLeft = 60; // Počáteční čas v sekundách
     
     // DOM elementy
     const boardElement = document.getElementById('board');
@@ -274,6 +280,12 @@
         gameStarted = data.started;
         console.log(data.turn);
         currentTurn = data.turn !== undefined ? data.turn : "X";
+
+        if (playerRole === data.turn && !data.winner) {
+            startCountdown(60);
+        } else {
+            stopCountdown();
+        }
         
         if (data.winner) {
             winner = data.winner;
@@ -379,8 +391,36 @@
     }
     
     document.getElementById("menuButton").addEventListener("click", () => {
+      socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
        window.location.href = `/menu`;
     });
+
+    document.getElementById("surrenderButton").addEventListener("click", () => {
+      socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
+      window.location.href = `/menu`;
+    });
+
+    function startCountdown(seconds) {
+      timeLeft = seconds; // Nastavíme počáteční čas
+      document.getElementById('timeLeft').innerText = timeLeft; // Aktualizujeme zobrazení
+      stopCountdown(); // Zastavíme případný existující odpočet
+      countdownTimer = setInterval(() => {
+        timeLeft -= 1; // Snížíme čas o 1 sekundu
+        document.getElementById('timeLeft').innerText = timeLeft; // Aktualizujeme zobrazení
+        if (timeLeft <= 0) {
+          stopCountdown(); // Zastavíme odpočet, když čas vyprší
+          alert("Čas vypršel!"); // Upozornění pro hráče
+          // Můžete přidat další logiku, např. automatické odevzdání hry
+        }
+      }, 1000); // Interval 1000 ms = 1 sekunda
+    }
+
+    function stopCountdown() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer); // Zrušíme interval
+        countdownTimer = null; // Vyčistíme proměnnou
+      }
+    }
   </script>
 </body>
 </html>
