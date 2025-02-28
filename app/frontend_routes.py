@@ -25,6 +25,10 @@ def start_page():
 def login_page():
     return render_template('login.html')
 
+@frontend_bp.route('/gdpr')
+def gdprpage():
+    return render_template('gdpr.html')
+
 @frontend_bp.route('/register')
 def register_page():
     return render_template('register.html')

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThinkTacToe - Menu</title>
+    <link rel="icon" type="/static/picture/X_cervene.svg" href="/static/picture/X_cervene.svg">
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -306,6 +307,11 @@
     <header class="header">
       <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
       <nav class="nav-container">
+
+        <button class="nav-button" onclick="window.location.href='/gdpr'">
+          <img src="static/picture/zarivka_idea_cerne.svg" alt="GDPR">
+          GDPR
+        </button>
           
           <button class="nav-button" onclick="showForm('guest')">
               <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
@@ -421,7 +427,7 @@
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const isGuest = localStorage.getItem('isGuest') === 'true';
-
+    console.log(window.location.origin)
     if (isGuest) {
             const rankedSection = document.getElementById('rankedSection');
             if (rankedSection) {
@@ -489,7 +495,6 @@ fetch(`/api/v1/users/get_score/${userId}`)
         alert('Please enter names for both players.');
         return;
       }
-      console.log(document.getElementById('localGameDifficulty').value)
       const roles = Math.random() < 0.5 ? ["X", "O"] : ["O", "X"];
       const players_data = [
         { 
@@ -512,7 +517,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
         own: userId
       };
       let uuid = "";
-
+      
       fetch(`${window.location.origin}/api/v1/games`, {
         method: 'POST',
         headers: {

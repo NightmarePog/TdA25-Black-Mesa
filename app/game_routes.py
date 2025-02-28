@@ -104,12 +104,14 @@ def update_game(uuid):
             for player in players:
                 if player['role'] == "X":
                     game.winnerId = player['user_id']
+                    save_game(game, players[0]["user_id"])
 
         elif check_winner(data['board'], "O"):
             game.game_state = 'endgame'
             for player in players:
                 if player['role'] == "O":
                     game.winnerId = player['user_id']
+                    save_game(game, players[0]["user_id"])
         else:
             game.game_state = determine_game_state(data['board'])
         db.session.commit()
