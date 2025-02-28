@@ -214,6 +214,12 @@
             cursor: pointer;
         }
 
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
         #waveCanvas {
             position: fixed;
             top: 0;
@@ -318,19 +324,10 @@
                 <div class="input-group">
                     <input type="text" id="gameName" placeholder="Game Name">
                 </div>
-                <div class="input-group">
-                    <select id="gameDifficulty">
-                        <option value="Beginner">Beginner</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Hard">Hard</option>
-                        <option value="The hardest">The hardest</option>
-                    </select>
-                </div>
                 <div class="input-group" id="rankedSection">
                     <select id="ranked">
-                        <option value="true">Ranked Match</option>
-                        <option value="false">Casual Match</option>
+                        <option value="false">Ranked Match</option>
+                        <option value="true">Casual Match</option>
                     </select>
                 </div>
                 <button class="action-button" id="createGame">Create Game</button>
@@ -354,21 +351,15 @@
                 <div class="input-group">
                     <input type="text" id="localPlayer2" placeholder="Player 2 Name">
                 </div>
-                <div class="input-group">
-                    <select id="localGameDifficulty">
-                        <option value="Beginner">Beginner</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Advanced">Advanced</option>
-                        <option value="Hard">Hard</option>
-                        <option value="The hardest">The hardest</option>
-                    </select>
-                </div>
                 <button class="action-button" id="startLocalGame">Start Local Game</button>
             </div>
 
             <div class="game-box">
               <h2 class="game-title">Find Game</h2>
-              <button id="findGame" class="action-button">Find Public Game</button>
+              <div class="button-container">
+                <button id="findGame" class="action-button">Find Casual Game</button>
+                <button id="findRankedGame" class="action-button">Find Ranked Game</button>
+            </div>
             </div>
         </div>
 
@@ -395,13 +386,15 @@
     const isGuest = localStorage.getItem('isGuest') === 'true';
 
     if (isGuest) {
-      // Skrytí ranked možnosti včetně popisku
-      const rankedSelect = document.getElementById('ranked');
-      if (rankedSelect) {
-        const rankedRow = rankedSelect.closest('tr');
-        rankedRow.style.display = 'none';
-      }
-    }
+            const rankedSection = document.getElementById('rankedSection');
+            if (rankedSection) {
+                rankedSection.style.display = 'none';
+            }
+            const findRankedGameButton = document.getElementById('findRankedGame');
+            if (findRankedGameButton) {
+                findRankedGameButton.style.display = 'none';
+            }
+        }
     
     localStorage.removeItem('playedUUID');
 
@@ -416,6 +409,13 @@
     }
 
     document.getElementById('findGame').addEventListener('click', () => {
+      localStorage.setItem('ranked', 'false');
+      window.location.href = '/findgame';
+    });
+
+    document.getElementById('findRankedGame').addEventListener('click', () => {
+      console.log('Clicked find ranked game');
+      localStorage.setItem('ranked', 'true');
       window.location.href = '/findgame';
     });
 
@@ -469,7 +469,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
       const localGameData = {
         name: player1 + ' vs ' + player2,
         players: players_data,
-        difficulty: document.getElementById('localGameDifficulty').value,
+        difficulty: "easy",
         board: Array(15).fill(null).map(() => Array(15).fill("")),
         local: true,
         own: userId
@@ -527,7 +527,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
 
     document.getElementById('createGame').addEventListener('click', () => {
       const gameName = document.getElementById('gameName').value.trim();
-      const gameDifficulty = document.getElementById('gameDifficulty').value;
+      // const gameDifficulty = document.getElementById('gameDifficulty').value; 
       const ranked = isGuest ? false : document.getElementById('ranked').value === 'true';
 
       if (!gameName) {
@@ -537,7 +537,7 @@ fetch(`/api/v1/users/get_score/${userId}`)
 
       const gameData = {
         name: gameName,
-        difficulty: gameDifficulty,
+        difficulty: "easy",
         board: Array(15).fill(null).map(() => Array(15).fill("")),
         local: false,
         own: userId,

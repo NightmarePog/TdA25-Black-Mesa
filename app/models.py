@@ -20,6 +20,7 @@ class Game(db.Model):
     code = db.Column(db.String(6), nullable=True, unique=True)
     isLocal = db.Column(db.Boolean, default=False)
     isRanked = db.Column(db.Boolean, default=False)
+    current_turn = db.Column(db.String(1), nullable=True, default='X')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -69,11 +70,17 @@ class User(db.Model):
     @staticmethod
     def register(data):
         try:
+            isGuest = False
             # Povinné pole loginBy
             if 'loginBy' not in data:
                 data['loginBy'] = "1"
             
             login_by = str(data['loginBy'])
+
+            if login_by == "1":
+                isGuest = False
+            else:
+                isGuest = True
 
             # Guest registrace (loginBy=0)
             if login_by == "0":
@@ -132,7 +139,8 @@ class User(db.Model):
                 "elo": player.elo,
                 "wins": player.wins,
                 "draws": player.draws,
-                "losses": player.losses
+                "losses": player.losses,
+                "isGuest": isGuest,
             }, 201
 
         except Exception as e:

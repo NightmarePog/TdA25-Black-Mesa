@@ -118,7 +118,7 @@ def update_game(uuid):
         else:
             for player in players:
                 save_game(game, player["user_id"])
-
+            '''
         if game.winnerId is not None and not game.isLocal:
             print("UPDATE RATING")
             if game.winnerId == players[0]['user_id']:
@@ -127,7 +127,7 @@ def update_game(uuid):
             else:
                 update_rating(players[0]['user_id'], players[1]['user_id'], "losses")
                 update_rating(players[1]['user_id'], players[0]['user_id'], "wins")
-
+            '''
         return jsonify(game_to_dict(game)), 200
     except KeyError as e:
         abort(400, description=f"Missing field: {str(e)}")
@@ -156,36 +156,54 @@ def surrender(uuid):
 
 
 waitingForGame = {"waiting": {}, "game": {}}
+waitingForGameRANKED = {"waiting": {}, "game": {}}
 
 @game_bp.route('/findgame', methods=['POST'])
 def findgame_post():  # Renamed function
     data = request.get_json()
+    print(data)
     print(data["userId"])
     user = User.query.get(data["userId"])
-    waitingForGame["waiting"][data["userId"]] = user_to_dict(user)
-    if data["userId"] in waitingForGame["waiting"]:
-        return jsonify(waitingForGame["waiting"][data["userId"]]), 200
+    if data["ranked"] == "true" or data["ranked"] == True:
+        waitingForGameRANKED["waiting"][data["userId"]] = user_to_dict(user)
+        if data["userId"] in waitingForGameRANKED["waiting"]:
+            return jsonify(waitingForGameRANKED["waiting"][data["userId"]]), 200
+        else:
+            return jsonify({}), 404
     else:
-        return jsonify({}), 404
+        waitingForGame["waiting"][data["userId"]] = user_to_dict(user)
+        if data["userId"] in waitingForGame["waiting"]:
+            return jsonify(waitingForGame["waiting"][data["userId"]]), 200
+        else:
+            return jsonify({}), 404
 
 
 @game_bp.route('/findgame', methods=['DELETE'])
 def findgame_delete():  # Renamed function
-    print("------------------------------------")
-    print(waitingForGame)
     data = request.get_json()
     if data["userId"] in waitingForGame["waiting"]:
         del waitingForGame["waiting"][data["userId"]]
-    print(waitingForGame)
+
+    elif data["userId"] in waitingForGameRANKED["waiting"]:
+        del waitingForGameRANKED["waiting"][data["userId"]]
+
     return jsonify({}), 200
 
 
 @game_bp.route('/check-match/<userUuid>', methods=['GET'])
 def findgame_get(userUuid):  # Renamed function
-    game = waitingForGame["game"].get(userUuid)
-    if game:
+
+    if waitingForGame["game"].get(userUuid):
+        gameuuid = waitingForGame["game"].get(userUuid)
+        print("CASUAL  GAMEGE")
         waitingForGame["game"].pop(userUuid)
-        return jsonify({"gameUuid": game}), 200
+        return jsonify({"gameUuid": gameuuid}), 200
+    
+    elif waitingForGameRANKED["game"].get(userUuid):
+        print("RANKED GAMEGAMEGAMEGAMEGAMEGAMEGAMEGAME")
+        gameuuid = waitingForGameRANKED["game"].get(userUuid)
+        waitingForGameRANKED["game"].pop(userUuid)
+        return jsonify({"gameUuid": gameuuid}), 200
     return jsonify({}), 200
 
 def matchmaking_background_task(app):
@@ -193,40 +211,76 @@ def matchmaking_background_task(app):
     print("Spouštím matchmaking...")
     while True:
         with app.app_context():
-            print("Kontroluji možné zápasy...")
-            
-            # Získání a seřazení čekajících hráčů
-            waiting_players = list(waitingForGame["waiting"].values())
-            sorted_players = sorted(waiting_players, key=lambda x: x["elo"])
-            
-            print("Seřazení hráči v lobby:")
-            for player in sorted_players:
-                print(f"{player['username']} (ELO: {player['elo']})")
-
-            # Párování hráčů po dvou
-            while len(sorted_players) >= 2:
-                player1 = sorted_players.pop(0)
-                player2 = sorted_players.pop(0)
+            def casual():
                 
-                mes, code, abo = create_game({
-                    "name": f"{player1['username']} vs {player2['username']}",
-                    "difficulty": "medium",
-                    "board": [[ "" for _ in range(15)] for _ in range(15)],
-                    "players": [],
-                    "local": False,
-                    "ranked": False
-                })
+                # Získání a seřazení čekajících hráčů
+                waiting_players = list(waitingForGame["waiting"].values())
+                sorted_players = sorted(waiting_players, key=lambda x: x["elo"])
+                
+                for player in sorted_players:
+                    print(f"{player['username']} (ELO: {player['elo']})")
 
-                if code == 201:
-                    print(mes)
-                    waitingForGame["game"][player1["uuid"]] = mes["uuid"]
-                    waitingForGame["game"][player2["uuid"]] = mes["uuid"]
-                    # Odstranění z čekací fronty
-                    del waitingForGame["waiting"][player1["uuid"]]
-                    del waitingForGame["waiting"][player2["uuid"]]
+                # Párování hráčů po dvou
+                while len(sorted_players) >= 2:
+                    player1 = sorted_players.pop(0)
+                    player2 = sorted_players.pop(0)
                     
-                    print(f"Vytvořen zápas mezi: {player1['username']} vs {player2['username']}")
-                else:
-                    print(f"Chyba při vytváření hry: {mes}")
+                    mes, code, abo = create_game({
+                        "name": f"{player1['username']} vs {player2['username']}",
+                        "difficulty": "medium",
+                        "board": [[ "" for _ in range(15)] for _ in range(15)],
+                        "players": [],
+                        "local": False,
+                        "ranked": False
+                    })
 
+                    if code == 201:
+                        print(mes)
+                        waitingForGame["game"][player1["uuid"]] = mes["uuid"]
+                        waitingForGame["game"][player2["uuid"]] = mes["uuid"]
+                        # Odstranění z čekací fronty
+                        del waitingForGame["waiting"][player1["uuid"]]
+                        del waitingForGame["waiting"][player2["uuid"]]
+                        
+                        print(f"Vytvořen zápas mezi: {player1['username']} vs {player2['username']}")
+                    else:
+                        print(f"Chyba při vytváření hry: {mes}")
+
+            def ranked():
+                
+                # Získání a seřazení čekajících hráčů
+                waiting_players = list(waitingForGameRANKED["waiting"].values())
+                sorted_players = sorted(waiting_players, key=lambda x: x["elo"])
+                
+                for player in sorted_players:
+                    print(f"{player['username']} (ELO: {player['elo']})")
+
+                # Párování hráčů po dvou
+                while len(sorted_players) >= 2:
+                    player1 = sorted_players.pop(0)
+                    player2 = sorted_players.pop(0)
+                    
+                    mes, code, abo = create_game({
+                        "name": f"{player1['username']} vs {player2['username']}",
+                        "difficulty": "medium",
+                        "board": [[ "" for _ in range(15)] for _ in range(15)],
+                        "players": [],
+                        "local": False,
+                        "ranked": True
+                    })
+
+                    if code == 201:
+                        print(mes)
+                        waitingForGameRANKED["game"][player1["uuid"]] = mes["uuid"]
+                        waitingForGameRANKED["game"][player2["uuid"]] = mes["uuid"]
+                        # Odstranění z čekací fronty
+                        del waitingForGameRANKED["waiting"][player1["uuid"]]
+                        del waitingForGameRANKED["waiting"][player2["uuid"]]
+                        
+                        print(f"Vytvořen RANKED zápas mezi: {player1['username']} vs {player2['username']}")
+                    else:
+                        print(f"Chyba při vytváření RANKED hry: {mes}")
+
+            casual()
+            ranked()
             time.sleep(5)
