@@ -587,7 +587,7 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
         ranked: ranked
       };
 
-      fetch(`${window.location.origin}/api/v1/games`, {
+      fetch(`https://${window.location.host}/api/v1/games`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
