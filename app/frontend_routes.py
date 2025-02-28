@@ -56,10 +56,6 @@ def user_page(uuid):
     print(user_to_dict(user_info))
     return render_template('user_page.html', user_info=user_to_dict(user_info))
 
-@frontend_bp.route('/leaderboard')
-def leaderboard():
-    return render_template('leaderboard.html')
-
 @frontend_bp.route('/settings')
 def settings():
     return render_template('settings.html')
