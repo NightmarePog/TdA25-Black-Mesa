@@ -5,6 +5,11 @@ from utils import game_to_dict, user_to_dict
 
 frontend_bp = Blueprint('frontend', __name__)
 
+@app.before_request
+def force_https():
+    if not request.is_secure:  # Pokud požadavek není přes HTTPS
+        return redirect(request.url.replace("http://", "https://"))
+
 @frontend_bp.route('/game/<uuid>')
 def saved_game_page(uuid):
     return render_template('saved_game.html', uuid=uuid)
