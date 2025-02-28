@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piškorky - GDPR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(to right, #E31837 40%, #0070BB 80%);
+            overflow-y: scroll;
+            height: auto;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            transition: top 0.3s ease-out; /* Efekt posunu při skrolování */
+            z-index: -10;
+        }
+
+        .main_name {
+            color: whitesmoke;
+            position: absolute; /* Absolutní pozice pro centrování */
+            top: 50%; /* Posune horní okraj na 50 % výšky stránky */
+            left: 50%; /* Posune levý okraj na 50 % šířky stránky */
+            transform: translate(-50%, -50%); /* Posune text zpět o polovinu své šířky a výšky */
+            font-size: 180px;
+            font-weight: bold;
+            font-family: 'Dosis', sans-serif;
+            margin: 0; /* Odstraní výchozí okraje */
+            padding: 0; /* Odstraní výchozí padding */
+            white-space: nowrap; /* Zabraňuje zalomení textu */
+        }
+
+        .logo {
+            width: 500px;
+            height: auto;
+            position: relative;
+            top: 20px;
+            left: 20px;
+        }
+
+        .text {
+            overflow-y: auto;
+            position: relative;
+            top: 100vh; /* Přesunutí na druhou stránku */
+            width: 100%;
+            height: auto; /* Více místa pro text */
+            color: black;
+            padding: 20px;
+            z-index: 10;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <canvas id="backgroundCanvas"></canvas> <!-- Canvas pro animace -->
+
+    <div class="wrapper">
+        <div id="content"></div>  <!-- Obsah background.html -->
+        <div id="logo"></div>     <!-- SVG logo -->
+        <div class="text" id="text"></div> <!-- GDPR text -->
+    </div>
+
+    <script>
+        // Načítání obsahu z background.html
+        fetch('newbackground/background.html')
+            .then(response => {
+                if (!response.ok) throw new Error('Soubor background.html nenalezen');
+                return response.text();
+            })
+            .then(data => {
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = data;
+
+                // Správné spuštění skriptů
+                contentDiv.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.error('Chyba při načítání background.html:', error));
+
+        // Načítání GDPR textu
+        fetch('GDPR_text.html')
+            .then(response => {
+                if (!response.ok) throw new Error('Soubor GDPR_text.html nenalezen');
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('text').innerHTML = data;
+            })
+            .catch(error => console.error('Chyba při načítání GDPR_text.html:', error));
+
+    </script>
+
+    <h1 class="main_name">GDPR</h1>
+
+</body>
+</html>

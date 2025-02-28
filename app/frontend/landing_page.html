@@ -135,14 +135,26 @@
             top: 4px;
             transition: all 100ms ease-out;
             z-index: -1;
-        }
+            }
+            .play_button:hover:not(:disabled):before {
+            background: #724479;
+            }
+
+            .play_button:hover:not(:disabled):after {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            transition-timing-function: ease-in;
+            opacity: 0;
+            }
 
 
     </style>
 </head>
 <body>
-    <img src="picture/game_logo.svg" class="logo" alt="Logo">
-    <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
+    <img src="new_background/picture/game_logo.svg" class="logo" alt="Logo">
+    <img src="new_background/picture/logo_cerna.svg" class="logo_2" alt="Logo">
     <p1 class="slogan"></p1>
     <script>
         // Seznam textů
@@ -168,7 +180,7 @@
     </script>
     
     
-    <a href="https://www.example.com" target="_blank">
+    <a href="/login">
         <button class="play_button" type="button">PLAY</button>
     </a>
 
