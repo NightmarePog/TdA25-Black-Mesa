@@ -19,7 +19,7 @@ def main_page():
 
 @frontend_bp.route('/')
 def start_page():
-    return redirect("/login")
+    return render_template('entrace_page.html')
 
 @frontend_bp.route('/login')
 def login_page():
