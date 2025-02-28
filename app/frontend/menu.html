@@ -1,347 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    /* Základní stylování těla – odstraněno statické pozadí */
-    body {
-      font-family: 'Dosis', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: transparent;
-      color: #1A1A1A;
-      min-height: 100vh;
-      overflow-y: auto;
-      position: relative;
-      z-index: 1;
-    }
-    
-    /* Canvas s vlnami bude fixovaný a vzadu */
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Portal - Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    .header {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      display: flex;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .nickname-box {
-      display: flex;
-      align-items: center;
-      background-color: rgba(26, 26, 26, 0.8);
-      color: #FFFFFF;
-      padding: 10px 15px;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      position: relative;
-      transition: background-color 0.3s ease;
-    }
-    
-    .nickname-box:hover {
-      background-color: rgba(8, 8, 8, 0.8);
-    }
-    
-    .menu {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 0;
-      background: rgba(255, 255, 255, 0.9);
-      color: #1A1A1A;
-      border: 1px solid #CCC;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      z-index: 10;
-    }
+    <style>
+        /* Zachování všech původních stylů z login.css */
+        body {
+            font-family: 'Dosis', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    .menu .stats {
-      padding: 10px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #eee;
-    }
+        .header {
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
 
-    .stat-item {
-      display: flex;
-      justify-content: space-between;
-      margin: 5px 0;
-      font-size: 14px;
-      color: #333;
-    }
+        .logo {
+            width: 120px;
+            margin-left: 5%;
+        }
 
-    .stat-item span:first-child {
-      font-weight: 600;
-      margin-right: 15px;
-    }
+        .nav-container {
+            display: flex;
+            gap: 2rem;
+            margin-right: 5%;
+        }
 
-    .menu-divider {
-      height: 1px;
-      background: #ddd;
-      margin: 10px 0;
-    }
-    
-    .nickname-box:hover .menu {
-      display: block;
-    }
-    
-    .menu button {
-      background-color: #E31837;
-      color: #FFFFFF;
-      border: none;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-    
-    .menu button:hover {
-      background-color: #AB2E58;
-    }
-    
-    h1 {
-      text-align: center;
-      margin-top: 70px;
-      color: #FFFFFF;
-      text-shadow: 0px 0px 10px rgba(0,0,0,0.5);
-      animation: fadeIn 1s ease-out;
-    }
-    
-    .game-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 20px;
-      animation: fadeIn 1s ease-out;
-    }
-    
-    .game-creation {
-      flex: 1;
-      max-width: 500px;
-      min-width: 300px;
-      background: rgba(255, 255, 255, 0.8);
-      border: 1px solid #CCC;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      margin: 10px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .game-creation:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-    
-    .game-creation table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    .game-creation table td {
-      padding: 10px;
-    }
-    
-    .game-creation label {
-      font-weight: 600;
-    }
-    
-    .game-creation input, .game-creation select {
-      width: 100%;
-      padding: 8px;
-      font-size: 14px;
-      border: 1px solid #CCC;
-      border-radius: 5px;
-    }
-    
-    .game-creation button {
-      background-color: #395A9A;
-      color: #FFFFFF;
-      border: none;
-      padding: 10px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-top: 15px;
-      width: 100%;
-      transition: background-color 0.3s ease;
-    }
-    
-    .game-creation button:hover {
-      background-color: #724479;
-    }
-    
-    .game-container .game-creation:last-child button {
-      margin-top: 68px;
-    }
-    
-    .game-list {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.8);
-      border: 1px solid #CCC;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      max-height: 400px;
-      overflow-y: auto;
-      backdrop-filter: blur(10px);
-      animation: fadeIn 1s ease-out;
-    }
-    
-    .game-list table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
-    .game-list table td {
-      padding: 10px;
-    }
-    
-    .game-list button {
-      background-color: #395A9A;
-      color: #FFFFFF;
-      border: none;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-    
-    .game-list button:hover {
-      background-color: #AB2E58;
-    }
-    
-    #waveCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    }
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-    @media screen and (max-width: 600px) {
-      .game-container {
-        flex-direction: column;
-        gap: 20px;
-      }
-      
-      .header {
-        top: 10px;
-        right: 10px;
-      }
-      
-      .nickname-box {
-        padding: 8px 10px;
-        font-size: 12px;
-      }
-      
-      h1 {
-        font-size: 18px;
-      }
+        .nav-button:hover {
+            background: rgba(227, 24, 55, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+        }
 
-      .game-creation select {
-        width: 100%;
-        padding: 8px;
-        font-size: 14px;
-        border: 1px solid #CCC;
-        border-radius: 5px;
-      }
-    }
+        .content-area {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            padding-top: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
 
-    .ranked-row {
-      display: table-row;
-    }
-    
-    /* Klíčové snímky pro fade in animaci */
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+        .game-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 20px;
+        }
+
+        .game-box {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .game-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .game-title {
+            color: #0070BB;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #0070BB;
+            outline: none;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 15px;
+            background: #E31837;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            background: #C8102E;
+            transform: translateY(-2px);
+        }
+
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 25px;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-button:hover {
+            background: rgba(227, 24, 55, 0.9);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 1rem;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0, 112, 187, 0.1);
+            border-radius: 5px;
+        }
+
+        .logout-button {
+            width: 100%;
+            margin-top: 1rem;
+            background: #E31837;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Zbytek původních stylů z menu.html */
+        .game-list {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin-top: 2rem;
+            padding: 2rem;
+        }
+
+        .game-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .game-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .sort-buttons {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .sort-button {
+            padding: 8px 16px;
+            border-radius: 5px;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #waveCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="header">
-    <div class="nickname-box">
-      <span id="nickname">Loading...</span>
-      <div class="menu">
-        <div class="stats">
-          <div class="stat-item"><span>Wins:</span> <span id="wins">0</span></div>
-          <div class="stat-item"><span>Draws:</span> <span id="draws">0</span></div>
-          <div class="stat-item"><span>Losses:</span> <span id="losses">0</span></div>
-          <div class="stat-item"><span>ELO:</span> <span id="elo">0</span></div>
+    <div id="background-container"></div>
+    
+    <header class="header">
+        <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
+        <div class="nav-container">
+            <div class="user-menu">
+                <div class="user-button" id="userButton">
+                    <span id="nickname">Loading...</span>
+                    <img src="static/picture/zarivka_idea_cerne.svg" alt="User" style="width:20px;filter:invert(1)">
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="stats">
+                        <div class="stats-item">
+                            <span>Wins:</span>
+                            <span id="wins">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>Draws:</span>
+                            <span id="draws">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>Losses:</span>
+                            <span id="losses">0</span>
+                        </div>
+                        <div class="stats-item">
+                            <span>ELO Rating:</span>
+                            <span id="elo">0</span>
+                        </div>
+                    </div>
+                    <button class="action-button logout-button" id="logout">Log Out</button>
+                </div>
+            </div>
         </div>
-        <div class="menu-divider"></div>
-        <button id="logout">Log Out</button>
-      </div>
-    </div>
-  </div>
+    </header>
 
-  <h1>Welcome to the game!</h1>
+    <div class="content-area">
+        <div class="game-container">
+            <!-- Create Game Box -->
+            <div class="game-box">
+                <h2 class="game-title">Create New Game</h2>
+                <div class="input-group">
+                    <input type="text" id="gameName" placeholder="Game Name">
+                </div>
+                <div class="input-group">
+                    <select id="gameDifficulty">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Hard">Hard</option>
+                        <option value="The hardest">The hardest</option>
+                    </select>
+                </div>
+                <div class="input-group" id="rankedSection">
+                    <select id="ranked">
+                        <option value="true">Ranked Match</option>
+                        <option value="false">Casual Match</option>
+                    </select>
+                </div>
+                <button class="action-button" id="createGame">Create Game</button>
+            </div>
 
-  <div class="game-container">
-    <div class="game-creation">
-      <h2>Create a Game</h2>
-      <table>
-        <tr>
-          <td><label for="gameName">Game Name:</label></td>
-          <td><input type="text" id="gameName" placeholder="Enter game name"></td>
-        </tr>
-        <tr>
-          <td><label for="gameDifficulty">Difficulty:</label></td>
-          <td>
-            <select id="gameDifficulty">
-              <option value="Beginner">Beginner</option>
-              <option value="Easy">Easy</option>
-              <option value="Advanced">Advanced</option>
-              <option value="Hard">Hard</option>
-              <option value="The hardest">The hardest</option>
-            </select>
-          </td>
-        </tr>
-        <tr class="ranked-row">
-          <td><label for="ranked">Ranked:</label></td>
-          <td>
-            <select id="ranked">
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </td>
-        </tr>
-      </table>
-      <button id="createGame">Create Game</button>
-    </div>
-
-    <div class="game-creation">
-      <h2>Join a Game</h2>
-      <table>
-        <tr>
-          <td><label for="gameCode">Game Code:</label></td>
-          <td><input type="text" id="gameCode" placeholder="Enter game code"></td>
-        </tr>
-      </table>
-      <button id="joinGame">Join Game</button>
-    </div>
+            <!-- Join Game Box -->
+            <div class="game-box">
+                <h2 class="game-title">Join Game</h2>
+                <div class="input-group">
+                    <input type="text" id="gameCode" placeholder="Game Code">
+                </div>
+                <button class="action-button" id="joinGame">Join Game</button>
+            </div>
 
             <!-- Local Game Box -->
             <div class="game-box">
@@ -363,26 +339,26 @@
                 </div>
                 <button class="action-button" id="startLocalGame">Start Local Game</button>
             </div>
+
+            <div class="game-box">
+              <h2 class="game-title">Find Game</h2>
+              <button id="findGame" class="action-button">Find Public Game</button>
+            </div>
         </div>
 
-  <div class="game-list" id="savedGamesList">
-    <h2>Saved Games</h2>
-    <!-- Vyhledávací okénko -->
-    <input
-      type="text"
-      id="searchGames"
-      placeholder="Search games"
-      style="margin-bottom: 10px; padding: 8px; width: calc(100% - 30px);"
-    />
-    <div>
-      <button id="sortByName">Sort by Name</button>
-      <button id="sortByDate">Sort by Date</button>
-      <button id="sortByDifficulty">Sort by Difficulty</button>
+        <!-- Saved Games List -->
+        <div class="game-list">
+            <h2 class="game-title">Saved Games</h2>
+            <div class="sort-buttons">
+                <button class="sort-button" id="sortByName">Sort by Name</button>
+                <button class="sort-button" id="sortByDate">Sort by Date</button>
+                <button class="sort-button" id="sortByDifficulty">Sort by Difficulty</button>
+            </div>
+            <table class="game-table" id="gamesTable">
+                <!-- Games will be populated here -->
+            </table>
+        </div>
     </div>
-    <table id="gamesTable">
-      <!-- Zde se budou zobrazovat uložené hry -->
-    </table>
-  </div>
 
   <!-- Načtení skriptu pro animované vlny -->
   <canvas id="waveCanvas"></canvas>
@@ -413,30 +389,34 @@
       handleLogout();
     }
 
-    // Na začátek scriptu po získání userId
-    fetch(`/api/v1/users/${userId}`)
-      .then(response => response.json())
-      .then(userData => {
-        if (userData.ban) {
-          const banIndicator = document.createElement('span');
-          banIndicator.textContent = ' (BANNED)';
-          banIndicator.style.color = '#E31837';
-          banIndicator.style.marginLeft = '5px';
-          document.getElementById('nickname').appendChild(banIndicator);
-        }
-      })
-      .catch(error => console.error('Error checking ban status:', error));
+    document.getElementById('findGame').addEventListener('click', () => {
+      window.location.href = '/findgame';
+    });
 
-    // Načtení statistik
-    fetch(`/api/v1/users/get_score/${userId}`)
-      .then(response => response.json())
-      .then(stats => {
-        document.getElementById('wins').textContent = stats.wins;
-        document.getElementById('draws').textContent = stats.draws;
-        document.getElementById('losses').textContent = stats.losses;
-        document.getElementById('elo').textContent = stats.rating;
-      })
-      .catch(error => console.error('Error loading stats:', error));
+    // Na začátek scriptu po získání userId
+fetch(`/api/v1/users/${userId}`)
+  .then(response => response.json())
+  .then(userData => {
+    if (userData.ban) {
+      const banIndicator = document.createElement('span');
+      banIndicator.textContent = ' (BANNED)';
+      banIndicator.style.color = '#E31837';
+      banIndicator.style.marginLeft = '5px';
+      document.getElementById('nickname').appendChild(banIndicator);
+    }
+  })
+  .catch(error => console.error('Error checking ban status:', error));
+
+// Načtení statistik
+fetch(`/api/v1/users/get_score/${userId}`)
+  .then(response => response.json())
+  .then(stats => {
+    document.getElementById('wins').textContent = stats.wins;
+    document.getElementById('draws').textContent = stats.draws;
+    document.getElementById('losses').textContent = stats.losses;
+    document.getElementById('elo').textContent = stats.rating;
+  })
+  .catch(error => console.error('Error loading stats:', error));
 
     document.getElementById('startLocalGame').addEventListener('click', () => {
       const player1 = document.getElementById('localPlayer1').value.trim();
@@ -569,10 +549,7 @@
     .then(response => response.json())
     .then(games => {
       const gamesTable = document.getElementById('gamesTable');
-      // Uložíme původní seznam her
-      const originalGames = games;
-      // Inicializujeme filteredGames s původními hrami
-      let filteredGames = originalGames.slice();
+      renderGameList(games);
 
       function renderGameList(games) {
         gamesTable.innerHTML = '';
@@ -629,27 +606,14 @@
         });
       }
 
-      // Počáteční vykreslení
-      renderGameList(filteredGames);
-
-      // Vyhledávání
-      document.getElementById('searchGames').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        filteredGames = originalGames.filter(game =>
-          game.name.toLowerCase().includes(searchTerm)
-        );
-        renderGameList(filteredGames);
-      });
-
-      // Třídicí tlačítka (nyní třídí aktuálně filtrovaný seznam)
       document.getElementById('sortByName').addEventListener('click', () => {
-        filteredGames.sort((a, b) => a.name.localeCompare(b.name));
-        renderGameList(filteredGames);
+        games.sort((a, b) => a.name.localeCompare(b.name));
+        renderGameList(games);
       });
 
       document.getElementById('sortByDate').addEventListener('click', () => {
-        filteredGames.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        renderGameList(filteredGames);
+        games.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        renderGameList(games);
       });
 
       document.getElementById('sortByDifficulty').addEventListener('click', () => {
@@ -660,8 +624,8 @@
           "Hard": 4,
           "The hardest": 5
         };
-        filteredGames.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
-        renderGameList(filteredGames);
+        games.sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
+        renderGameList(games);
       });
     })
     .catch(error => {
@@ -713,6 +677,17 @@
         console.error('Error joining game:', error);
         alert('Failed to join game.');
       });
+    });
+
+    document.getElementById('userButton').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('dropdownMenu').classList.toggle('show');
+        });
+
+    window.addEventListener('click', function(e) {
+        if (!document.getElementById('userButton').contains(e.target)) {
+            document.getElementById('dropdownMenu').classList.remove('show');
+        }
     });
   </script>
 </body>

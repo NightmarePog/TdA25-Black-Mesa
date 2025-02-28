@@ -3,185 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Game Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
             font-family: 'Dosis', sans-serif;
-            background-color: #ffffff;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            width: 120px;
+            margin-left: 5%;
+        }
+
+        .nav-container {
+            display: flex;
+            gap: 2rem;
+            margin-right: 5%;
+        }
+
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 112, 187, 0.9);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-button:hover {
+            background: rgba(227, 24, 55, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+        }
+
+        .nav-button img {
+            width: 20px;
+            height: 20px;
+            filter: invert(1) brightness(2);
+            -webkit-filter: invert(1) brightness(2);
+            transition: transform 0.3s ease;
+        }
+
+        .content-area {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            padding-top: 30px !important; /* Změněno z 100px */
+            margin-top: -50px; /* Přidáno pro posunutí nahoru */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin-top: 20px; /* Změněno z 30px */
+            padding: 30px; /* Změněno z 40px */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .active-form {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #0070BB;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 95%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #0070BB;
+            outline: none;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            background: #E31837;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background: #C8102E;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+        .hero {
+            height: 20vh;
+            margin-top: 50px;
+        }
+        
+        .content-area {
+            padding-top: 20px !important;
+            margin-top: -30px;
+        }
+        
+        .main-logo {
+            width: 80vw;
+        }
+    }
+
+        .hero {
+            position: relative;
+            height: 25vh; /* Zmenšeno z 40vh */
+            margin-top: 60px; /* Zmenšeno z 80px */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 80px;
+            z-index: 1;
+        }
+
+        .main-logo {
+            width: 60vw;
+            max-width: 600px;
+            height: auto;
+            filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.1));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         #waveCanvas {
             position: fixed;
             top: 0;
             left: 0;
-            z-index: 0;
-        }
-
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 60px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
-            margin-top: 10vh;
-            margin-left: auto;
-            margin-right: auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .game-logo {
-            width: 800px;
-            display: block;
-            margin: 20px auto;
-            margin-top: 20px;
-        }
-
-        .form-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .form {
-            width: 45%;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #1A1A1A;
-        }
-
-        input[type="text"], input[type="password"], input[type="email"] {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 100px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #395A9A;
-            color: white;
-            border: none;
-            border-radius: 100px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #2C4376;
-        }
-
-        .register-button {
-            margin-top: 20px;
-            background-color: #AB2E58;
-        }
-
-        .register-button:hover {
-            background-color: #724479;
+            z-index: -1;
         }
     </style>
 </head>
 <body>
-    <canvas id="waveCanvas"></canvas>
-    
-    <div class="login-container">
-        <div class="form-container">
-            <div class="form">
-                <h2>Guest Login</h2>
-                <form id="guestForm">
-                    <input type="text" id="nickname" placeholder="Nickname" required>
-                    <button type="submit">Play as Guest</button>
-                </form>
-            </div>
-            <div class="form">
-                <h2>Login</h2>
-                <form id="loginForm">
-                    <input type="email" id="email" placeholder="Email" required>
-                    <input type="password" id="password" placeholder="Password" required>
-                    <button type="submit">Login</button>
-                </form>
-                <button class="register-button" id="registerButton">Register</button>
-            </div>
-        </div>
+    <div id="background-container"></div>
+    <header class="header">
+        <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo">
+        <nav class="nav-container">
+            <button class="nav-button" onclick="showForm('guest')">
+                <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
+                Play Guest
+            </button>
+            <button class="nav-button" onclick="showForm('login')">
+                <img src="static/picture/zarivka_playing_cerne.svg" alt="Login">
+                Log In
+            </button>
+            <button class="nav-button" onclick="showForm('register')">
+                <img src="static/picture/zarivka_thinking_cerne.svg" alt="Sign Up">
+                Sign Up
+            </button>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <img src="static/picture/game_logo.png" class="main-logo" alt="Main Game Logo">
     </div>
 
+    <div class="content-area">
+        <!-- Guest Form -->
+        <!-- Guest Form -->
+        <div id="guest-form" class="form-container active-form">
+            <h2 class="form-title">Play as Guest</h2>
+            <form>
+                <div class="input-group">
+                    <input type="text" id="guest-nickname" placeholder="Enter Nickname" required>
+                </div>
+                <button type="submit" class="submit-button">Start Game</button>
+            </form>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="form-container">
+            <h2 class="form-title">Log In to Your Account</h2>
+            <form>
+                <div class="input-group">
+                    <input type="email" id="login-email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="submit-button">Log In</button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="form-container">
+            <h2 class="form-title">Create New Account</h2>
+            <form>
+                <div class="input-group">
+                    <input type="text" id="register-username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="register-email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="register-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="submit-button">Register</button>
+            </form>
+        </div>
+    </div>
+    <canvas id="waveCanvas"></canvas>
     <script src="/static/js/waves.js"></script>
     <script>
-        // Kontrola, zda je uživatel již přihlášen
+        // Kontrola přihlášení
         const userIdStorage = localStorage.getItem('userId');
         if (userIdStorage) {
             window.location.href = '/menu';
         }
-
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
+    
+        // Společné funkce
+        function handleAuthResponse(data) {
+            if (data.uuid) {
+                localStorage.setItem('userId', data.uuid);
+                localStorage.setItem('username', data.username);
+                if (data.isGuest) {
+                    localStorage.setItem('isGuest', 'true');
+                    localStorage.setItem('time_from_leaving', Date.now());
+                }
+                window.location.href = '/menu';
+            } else {
+                alert(data.message || 'Chyba při přihlášení');
+            }
+        }
+    
+        // Login Form
+        document.getElementById('login-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+    
             fetch('/api/v1/users/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, loginBy: "1" })
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.uuid) {
-                    localStorage.setItem('userId', data.uuid);
-                    localStorage.setItem('username', data.username);
-                    window.location.href = '/menu';
-                } else {
-                    alert(data.message || 'Login failed');
-                }
-            })
+            .then(handleAuthResponse)
             .catch(error => console.error('Error:', error));
         });
-
-        document.getElementById('guestForm').addEventListener('submit', function(event) {
+    
+        // Guest Form
+        document.getElementById('guest-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const nickname = document.getElementById('nickname').value;
-
+            const nickname = document.getElementById('guest-nickname').value;
+    
             fetch('/api/v1/users', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username: nickname, email: "guest", password: "guest", loginBy: "0" })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    username: nickname, 
+                    email: "guest@example.com", 
+                    password: "guest", 
+                    loginBy: "0" 
+                })
             })
             .then(response => response.json())
-            .then(data => {
-                if (data.uuid) {
-                    localStorage.setItem('userId', data.uuid);
-                    localStorage.setItem('username', data.username);
-                    localStorage.setItem('isGuest', 'true');
-                    localStorage.setItem('time_from_leaving', Date.now());
-                    window.location.href = '/menu';
-                } else {
-                    alert(data.message || 'Guest login failed');
-                }
-            })
+            .then(handleAuthResponse)
             .catch(error => console.error('Error:', error));
         });
-
-        document.getElementById('registerButton').addEventListener('click', function() {
-            window.location.href = '/register';
+    
+        // Registrace a validace hesla
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+                number: /\d/.test(password),
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password)
+            };
+    
+            // Zde můžete přidat vizuální feedback pro požadavky na heslo
+            return Object.values(requirements).every(Boolean);
+        }
+    
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+    
+            if (!validatePassword(password)) {
+                alert('Heslo musí obsahovat:\n- Minimálně 8 znaků\n- Velké a malé písmeno\n- Číslici\n- Speciální znak');
+                return;
+            }
+    
+            fetch('/api/v1/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password, loginBy: "1" })
+            })
+            .then(response => response.json())
+            .then(handleAuthResponse)
+            .catch(error => console.error('Chyba:', error));
         });
+    
+        // Zůstávající funkce pro přepínání formulářů
+        function showForm(formType) {
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active-form');
+            });
+            document.getElementById(`${formType}-form`).classList.add('active-form');
+        }
     </script>
 </body>
 </html>
