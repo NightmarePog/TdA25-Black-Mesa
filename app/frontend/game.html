@@ -1,458 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Dosis', sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Portal - Match</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* Základní styly */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Dosis", sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #1A1A1A;
+      position: relative;
+    }
 
-        body {
-            background-color: #F6F6F6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            color: #1A1A1A;
-            text-align: center;
-            position: relative;
-        }
+    .header {
+      width: 100%;
+      padding: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+    }
+    .logo {
+      width: 120px;
+      margin-left: 5%;
+    }
 
-        .game-info-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 1000px;
-            margin-bottom: 5px; 
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+    /* Kontejner pro herní obsah (deska + info panel) */
+    .game-container {
+      margin-top: 120px;
+      width: 100%;
+      max-width: 1000px;
+      padding: 20px;
+    }
+    .game-main {
+      display: flex;
+      gap: 20px;
+      /* Zarovnání do stejné výšky */
+      align-items: stretch;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-        .game-info {
-            background-color: #FFFFFF;
-            padding: 5px 10px; 
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 0rem; 
-            font-weight: bold;
-            color: #AB2E58;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 5px;
-            width: 22%;
-        }
+    .info-panel {
+      /* Šířka panelu */
+      flex: 0 0 300px;
+      /* Umožní roztáhnout se do výšky kontejneru (stejně jako deska) */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      height: 100%;
+      min-height: 494px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      border-radius: 15px;
+      padding: 1rem;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
 
-        #gameStatusContainer, #turnContainer, #gameStateContainer {
-            font-size: 1.2rem;
-        }
+    /* Herní deska */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(15, 28px);
+      grid-template-rows: repeat(15, 28px);
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 1rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      margin: 0;
+    }
+    .cell {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(0, 112, 187, 0.3);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .cell:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .cell.x {
+      background-image: url("{{ url_for('static', filename='picture/X_cervene.svg') }}");
+      background-size: 80%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .cell.o {
+      background-image: url("{{ url_for('static', filename='picture/O_modre.svg') }}");
+      background-size: 80%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
 
-        #gameStatusContainer {
-            color: #AB2E58;
-        }
+    /* Info panel a herní údaje */
+    .info-panel .game-info {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 0.8rem;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      font-weight: 600;
+      text-align: left;
+    }
 
-        #gameStateContainer {
-            color: #AB2E58;
-        }
+    /* Upravený styl pro seznam hráčů, aby odpovídal ostatním prvkům */
+    .player-list {
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      padding: 0.8rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      font-weight: 600;
+      text-align: left;
+      overflow-y: auto;
+    }
+    .player-item {
+      padding: 0.8rem;
+      margin: 0.3rem 0;
+      border-radius: 8px;
+      background: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .player-item.turn {
+      background: rgba(0, 112, 187, 0.9);
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 112, 187, 0.3);
+    }
 
-        .board {
-            display: grid;
-            grid-template-columns: repeat(15, 30px); 
-            grid-template-rows: repeat(15, 30px); 
-            gap: 3px;
-            margin-top: 15px; 
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            justify-items: center;
-            margin-bottom: 20px;
-        }
+    /* Ovládací tlačítka */
+    .controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .game-btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0, 112, 187, 0.9);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+    .game-btn:hover {
+      background: rgba(227, 24, 55, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+    }
 
-        .cell {
-            width: 30px; 
-            height: 30px; 
-            border: 1px solid #395A9A;
-            background-color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-        }
+    /* Responsivní design */
+    @media (max-width: 768px) {
+      .board {
+        grid-template-columns: repeat(15, 20px);
+        grid-template-rows: repeat(15, 20px);
+      }
+      .cell {
+        width: 20px;
+        height: 20px;
+      }
+      .game-main {
+        flex-direction: column;
+        align-items: center;
+      }
+      .info-panel {
+        width: 100%;
+        margin-top: 1rem;
+        height: auto;
+      }
+    }
 
-        .cell:hover {
-            transform: scale(1.05);
-        }
-
-        .cell.x {
-            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .cell.o {
-            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .game-btn {
-            margin-top: 25px; 
-            padding: 8px 16px;
-            font-size: 1rem;
-            color: #FFFFFF;
-            background-color: #395A9A;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .game-btn:hover {
-            background-color: #1A3C6C;
-        }
-
-        .player-list {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #FFFFFF;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            width: 200px;
-            font-size: 1rem;
-        }
-
-        .player-item {
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .player-item.turn {
-            background-color: #395A9A;
-            color: #FFFFFF;
-        }
-
-        #waveCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
-
-        @media (max-width: 600px) {
-            .game-info-container {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .game-info {
-                width: 80%;
-                margin: 5px 0;
-                font-size: 0.8rem; 
-            }
-
-            .board {
-                grid-template-columns: repeat(15, 25px); 
-                grid-template-rows: repeat(15, 25px);
-            }
-
-            .cell {
-                width: 25px;
-                height: 25px;
-            }
-
-            .player-list {
-                top: 10px;
-                right: 10px;
-                width: 150px;
-                font-size: 0.9rem;
-            }
-        }
-    </style>
+    #waveCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+  </style>
 </head>
 <body>
-    <div class="game-info-container">
-        <div id="gameStatusContainer" class="game-info">
-            <span>Status: </span><span id="gameStatus">Waiting for players...</span>
+  <div id="background-container"></div>
+  <header class="header">
+    <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo" />
+  </header>
+
+  <div class="game-container">
+    <div class="game-main">
+      <!-- Herní deska -->
+      <div class="board-container">
+        <div id="board" class="board"></div>
+      </div>
+      <!-- Upravený Info panel -->
+      <div class="info-panel">
+        <div class="game-info">
+          <span>Status: </span><span id="gameStatus">Waiting for players...</span>
         </div>
-        <div id="turnContainer" class="game-info">
-            <span>Turn: </span><span id="turn">X</span>
+        <div class="game-info">
+          <span>Turn: </span><span id="turn">X</span>
         </div>
-        <div id="gameStateContainer" class="game-info">
-            <span id="gameState">Initializing...</span>
+        <div class="game-info">
+          <span>Game State: </span><span id="gameState">Initializing...</span>
         </div>
+        <!-- Seznam hráčů s informací o značce -->
+        <div class="player-list" id="playerList"></div>
+      </div>
     </div>
 
-    <canvas id="waveCanvas"></canvas>
-    <script src="/static/js/waves.js"></script>
-    <div id="board" class="board"></div>
-    <div class="player-list" id="playerList"></div>
-    <button id="menuButton" class="game-btn">Go to main page</button>
-    <button id="surrenderButton" class="game-btn">Surrender</button>
+    <div class="controls">
+      <button id="menuButton" class="game-btn">Main Menu</button>
+    </div>
+  </div>
+  <canvas id="waveCanvas"></canvas>
+  <script src="/static/js/waves.js"></script>
+  <script>
+    const username = localStorage.getItem('username');
+    const userId = localStorage.getItem('userId');
+    const isGuest = localStorage.getItem('isGuest');
+    const uuid = localStorage.getItem('uuid');
+    let gameData = null;
+    let playerRole = "";
+    let gameName = "";
+    let currentTurn = "X";
+    let winner = "";
+    let winnerName = "";
+    let playerList = [];
+    let gameCode = "local";
+    let board = Array(15)
+      .fill(null)
+      .map(() => Array(15).fill(null));
 
-    <script>
-        const username = localStorage.getItem('username');
-        const userId = localStorage.getItem('userId');
-        const isGuest = localStorage.getItem('isGuest');
-        const uuid = localStorage.getItem('uuid');
-        let gameData = null;
-        let playerRole = "";
-        let gameName = "";
-        let currentTurn = "X";
-        let winner = "";
-        let winnerName = "";
-        let playerList = [];
-        let gameCode = "local";
-        let board = Array(15).fill(null).map(() => Array(15).fill(null));
+    const boardElement = document.getElementById("board");
+    const gameStatusElement = document.getElementById("gameStatus");
+    const turnElement = document.getElementById("turn");
+    const gameStateElement = document.getElementById("gameState");
+    const playerListElement = document.getElementById("playerList");
 
-        const boardElement = document.getElementById("board");
-        const gameCodeElement = document.getElementById("gameCode");
-        const gameStatusElement = document.getElementById("gameStatus");
-        const turnElement = document.getElementById("turn");
-        const playerListElement = document.getElementById("playerList");
-        const gameStateElement = document.getElementById("gameState");
+    if (!userId) {
+      window.location.href = "/login";
+    }
 
-        if (!userId) {
-            window.location.href = '/login';
-        }
+    function handleLogout() {
+      if (isGuest) {
+        deleteGuestAccount();
+      }
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/login";
+    }
 
+    function deleteGuestAccount() {
+      fetch(`/api/v1/users/${userId}`, { method: "DELETE" })
+        .then((response) => {
+          if (response.ok) {
+            console.log("Guest account deleted.");
+          } else {
+            console.error("Failed to delete guest account.");
+          }
+        })
+        .catch((err) => console.error("Error deleting guest account:", err));
+    }
 
-        if (isGuest && Math.floor(Date.now() / 1000) - Math.floor(localStorage.getItem("time_from_leaving") / 1000) > 15) {
-            handleLogout();
-        }
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("time_from_leaving", Date.now());
+    });
 
-        function handleLogout() {
-            if (isGuest) {
-                deleteGuestAccount();
-            }
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = '/login';
-        }
+    const API_BASE_URL = "/api/v1/";
+    const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
 
-        function deleteGuestAccount() {
-            fetch(`/api/v1/users/${userId}`, { method: 'DELETE' })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Guest account deleted.');
-                    } else {
-                        console.error('Failed to delete guest account.');
-                    }
-                })
-                .catch(err => console.error('Error deleting guest account:', err));
-        }
-
-        window.addEventListener('beforeunload', () => {
-            localStorage.setItem('time_from_leaving', Date.now());
+    async function getGameData() {
+      try {
+        const response = await fetch(GAME_API_URL, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
         });
-
-        const API_BASE_URL = "/api/v1/";
-        const GAME_API_URL = `${API_BASE_URL}games/${uuid}`;
-
-        async function getGameData() {
-            try {
-                const response = await fetch(GAME_API_URL, {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" },
-                });
-
-                if (response.ok) {
-                    const gameData = await response.json();
-                    updateGameState(gameData);
-                } else {
-                    console.error("Chyba při posílání tahu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
+        if (response.ok) {
+          const gameData = await response.json();
+          updateGameState(gameData);
+        } else {
+          console.error("Chyba při posílání tahu:", response.statusText);
         }
-        getGameData();
+      } catch (error) {
+        console.error("Chyba při komunikaci s API:", error);
+      }
+    }
+    getGameData();
 
-        function createBoard() {
-            boardElement.innerHTML = "";
-            for (let row = 0; row < 15; row++) {
-                for (let col = 0; col < 15; col++) {
-                    const cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-                    boardElement.appendChild(cell);
+    function createBoard() {
+      boardElement.innerHTML = "";
+      for (let row = 0; row < 15; row++) {
+        for (let col = 0; col < 15; col++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          boardElement.appendChild(cell);
 
-                    cell.addEventListener("click", () => handleCellClick(row, col));
-                }
-            }
+          cell.addEventListener("click", () => handleCellClick(row, col));
         }
+      }
+    }
 
-        async function fetchGameState() {
-            try {
-                const response = await fetch(GAME_API_URL);
-                if (response.ok) {
-                    gameData = await response.json();
-                    updateGameState(gameData);
-                } else {
-                    console.error("Chyba při načítání herního stavu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
+    async function fetchGameState() {
+      try {
+        const response = await fetch(GAME_API_URL);
+        if (response.ok) {
+          gameData = await response.json();
+          updateGameState(gameData);
+        } else {
+          console.error("Chyba při načítání herního stavu:", response.statusText);
         }
+      } catch (error) {
+        console.error("Chyba při komunikaci s API:", error);
+      }
+    }
 
-        function updateGameState(gameData) {
-            board = gameData.board;
-            playerList = gameData.players;
-            winnerId = gameData.winnerId;
+    function updateGameState(gameData) {
+      board = gameData.board;
+      playerList = gameData.players;
+      const winnerId = gameData.winnerId;
 
-            turnElement.textContent = currentTurn;
-            if (winnerId !== null) {
-                for (value in playerList) {
-                    if (playerList[value].user_id === winnerId) {
-                        gameStatusElement.textContent = playerList[value].username + " won!";
-                    }
-                }
-            } else {
-                gameStatusElement.textContent = "Playing";
-            }
+      turnElement.textContent = currentTurn;
 
-            if (gameData.gameState) {
-                if (gameData.gameState === "opening") {
-                    gameState.innerText = "It's warming up";
-                } else if (gameData.gameState === "midgame") {
-                    gameState.innerText = "Thrilling";
-                } else if (gameData.gameState === "endgame") {
-                    gameState.innerText = "Could it be the end?";
-                } else {
-                    gameState.innerText = gameData.gameState;
-                }
-            }
-
-            updatePlayerList();
-            updateBoardUI(winnerId);
-        }
-
-        function updateBoardUI(winnerId) {
-            const boardElement = document.getElementById('board');
-            boardElement.innerHTML = '';
-
-            board.forEach((row, rowIndex) => {
-                row.forEach((cell, colIndex) => {
-                    const cellElement = document.createElement('div');
-                    cellElement.classList.add('cell');
-                    if (cell) {
-                        cellElement.classList.add(cell.toLowerCase());
-                    }
-                    
-                    if (winnerId === null) {
-                        cellElement.addEventListener('click', () => handleCellClick(rowIndex, colIndex));
-                    } else {
-                        cellElement.style.cursor = 'not-allowed';
-                    }
-
-                    boardElement.appendChild(cellElement);
-                });
-            });
-
-            for (let row = 0; row < 15; row++) {
-                for (let col = 0; col < 15; col++) {
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    if (board[row][col] === "X") {
-                        cell.classList.add("x");
-                    } else if (board[row][col] === "O") {
-                        cell.classList.add("o");
-                    } else {
-                        cell.classList.remove("x", "o");
-                    }
-                }
-            }
-        }
-
-        async function handleCellClick(row, col) {
-            if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
-                return;
-            }
-            
-            board[row][col] = currentTurn;
-            
-            if (currentTurn === "X") {
-                currentTurn = "O";
-            } else {
-                currentTurn = "X";
-            }
-
-            try {
-                const response = await fetch(GAME_API_URL, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ "board": board, "difficulty": gameData.difficulty, name: gameData.name, "save_game_to_user": localStorage.getItem('userId') }),
-                });
-
-                if (response.ok) {
-                    const gameData = await response.json();
-                    updateGameState(gameData);
-                } else {
-                    console.error("Chyba při posílání tahu:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
-        }
-
-        function updatePlayerList() {
-            playerListElement.innerHTML = "";
-            playerList.forEach((player) => {
-                const playerItem = document.createElement("div");
-                playerItem.classList.add("player-item");
-                
-                if (player.role === currentTurn) {
-                    playerItem.classList.add("turn");
-                }
-                playerItem.textContent = player.username;
-                playerListElement.appendChild(playerItem);
-            });
-        }
-
-        async function handleSurrender() {
-            try {
-                const response = await fetch(`${GAME_API_URL}/surrender`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId: userId }),
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    alert(result.message);
-                    window.location.href = '/menu';
-                } else {
-                    console.error("Chyba při kapitulaci:", response.statusText);
-                }
-            } catch (error) {
-                console.error("Chyba při komunikaci s API:", error);
-            }
-        }
-
-        createBoard();
-        fetchGameState();
-        setInterval(fetchGameState, 2000);
-
-        document.getElementById("menuButton").addEventListener("click", () => {
-            window.location.href = '/menu';
+      if (winnerId !== null) {
+        playerList.forEach((player) => {
+          if (player.user_id === winnerId) {
+            gameStatusElement.textContent = player.username + " won!";
+          }
         });
+      } else {
+        gameStatusElement.textContent = "Playing";
+      }
 
-        document.getElementById("surrenderButton").addEventListener("click", handleSurrender);
-    </script>
+      if (gameData.gameState) {
+        if (gameData.gameState === "opening") {
+          gameStateElement.textContent = "It's warming up";
+        } else if (gameData.gameState === "midgame") {
+          gameStateElement.textContent = "Thrilling";
+        } else if (gameData.gameState === "endgame") {
+          gameStateElement.textContent = "Could it be the end?";
+        } else {
+          gameStateElement.textContent = gameData.gameState;
+        }
+      }
+
+      // Aktualizace seznamu hráčů s vizuálním označením aktuálního tahu
+      updatePlayerList();
+      updateBoardUI(winnerId);
+    }
+
+    function updateBoardUI(winnerId) {
+      boardElement.innerHTML = "";
+      board.forEach((row, rowIndex) => {
+        row.forEach((cell, colIndex) => {
+          const cellElement = document.createElement("div");
+          cellElement.classList.add("cell");
+          if (cell) {
+            cellElement.classList.add(cell.toLowerCase());
+          }
+
+          if (winnerId === null) {
+            cellElement.addEventListener("click", () =>
+              handleCellClick(rowIndex, colIndex)
+            );
+          } else {
+            cellElement.style.cursor = "not-allowed";
+          }
+
+          boardElement.appendChild(cellElement);
+        });
+      });
+
+      // Vykreslení X a O
+      for (let row = 0; row < 15; row++) {
+        for (let col = 0; col < 15; col++) {
+          const cell = document.querySelector(
+            `.cell[data-row="${row}"][data-col="${col}"]`
+          );
+          if (board[row][col] === "X") {
+            cell.classList.add("x");
+          } else if (board[row][col] === "O") {
+            cell.classList.add("o");
+          } else {
+            cell.classList.remove("x", "o");
+          }
+        }
+      }
+    }
+
+    async function handleCellClick(row, col) {
+      if (board[row][col] !== "" || (winner !== "" && winner !== undefined)) {
+        return;
+      }
+
+      board[row][col] = currentTurn;
+      currentTurn = currentTurn === "X" ? "O" : "X";
+
+      try {
+        const response = await fetch(GAME_API_URL, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            board: board,
+            difficulty: gameData.difficulty,
+            name: gameData.name,
+            save_game_to_user: localStorage.getItem("userId"),
+          }),
+        });
+        if (response.ok) {
+          const gameData = await response.json();
+          updateGameState(gameData);
+        } else {
+          console.error("Chyba při posílání tahu:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Chyba při komunikaci s API:", error);
+      }
+    }
+
+    function updatePlayerList() {
+      playerListElement.innerHTML = "";
+      playerList.forEach((player) => {
+        const playerItem = document.createElement("div");
+        playerItem.classList.add("player-item");
+        // Zobrazí se jméno hráče s informací o značce (X nebo O)
+        playerItem.textContent = `${player.username} (${player.role})`;
+        if (player.role === currentTurn) {
+          playerItem.classList.add("turn");
+        }
+        playerListElement.appendChild(playerItem);
+      });
+    }
+
+    createBoard();
+    fetchGameState();
+    setInterval(fetchGameState, 2000);
+
+    document.getElementById("menuButton").addEventListener("click", () => {
+      window.location.href = "/menu";
+    });
+  </script>
 </body>
 </html>
-<-- please finish surrender button functionallity uwu -->

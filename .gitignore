@@ -1,6 +1,5 @@
 instance/
 local/
 .idea/
-app/__pycache__/
 /.venv
 start.sh

@@ -4,19 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animated Wave Pattern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         body {
-            background: linear-gradient(to top right, #E31837 40%, #0070BB 80%);
+            background: linear-gradient(to right, #E31837 40%, #0070BB 80%);
             margin: 0;
             overflow: hidden;
+            z-index: 1;
+            font-family: "Dosis";
         }
 
         canvas {
             display: block;
+            z-index: 1;
         }
+
+        .logo {
+            width: 45vw;
+            height: auto;
+            position: absolute;
+            top: 13vh;
+            left: 5vw;
+            z-index: 0;
+            transform: translate(50%, 0%);
+        }
+
+        .logo_2 {
+            width: 10vw; /* 10% šířky okna */
+            height: auto;
+            position: absolute;
+            top: 90vh; /* 5% výšky okna */
+            left: 78vw; /* 5% šířky okna */
+            z-index: 2;
+            transform: translate(100%, 0%);
+        }
+
+        .floating-bar {
+            display: flex;
+            position: absolute; /* Zajištění, že lišta zůstane na místě při posouvání stránky */
+            top: 3vh; /* Vzdálenost od horního okraje */
+            left: 15vw; /* Vzdálenost od levého okraje */
+            right: 15vw; /* Vzdálenost od pravého okraje */
+            height: 8vh; /* Dvakrát vyšší než původní */
+            line-height: 30px; /* Nastavení výšky řádku na stejnou hodnotu jako výška lišty */
+            background-color: #FFFFFF; /* Černá barva */
+            border-radius: 20px; /* Zakulacené rohy */
+            z-index: 1000; /* Zajištění, že lišta bude nad vším ostatním */
+            box-sizing: border-box; /* Zahrnutí paddingu do celkové šířky */
+            border: 2px solid #000000;
+            font-family: "Dosis";
+        }
+
+        .button-wrapper {
+            flex: 1; /* Každé tlačítko má stejnou velikost */
+            display: flex;
+        }
+
+
+        .bar-button {
+            flex: 1; /* Každé tlačítko vyplní celý svůj wrapper */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            border-right: 2px ; /* Čára mezi tlačítky */
+            font-family: "Dosis";
+            }
+
+            .bar-button:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+
+            .bar-button img {
+                width: auto;  /* Šířka obrázku bude 10% šířky obrazovky */
+                height: 5vh; /* Výška obrázku se automaticky přizpůsobí šířce */
+                max-width: 50px; /* Maximální šířka obrázku je 60px, aby nevyrostl příliš velký */
+                max-height: 50px; /* Maximální výška obrázku je 60px */
+                margin-right: 8px;
+                margin-left: 10px;
+                vertical-align: middle;
+                
+            }
+
+
     </style>
 </head>
 <body>
+    <img src="picture/game_logo.svg" class="logo" alt="Logo">
+    <img src="picture/logo_cerna.svg" class="logo_2" alt="Logo">
+    <div class="floating-bar">
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">PLAY AS GUEST
+                <img src="picture/zarivka_idea_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">LOG IN
+                <img src="picture/zarivka_thinking_cerne.svg" alt="Icon">
+            </a>
+        </div>
+        <div class="button-wrapper">
+            <a href="#" class="bar-button">SIGN UP
+                <img src="picture/zarivka_playing_cerne.svg" alt="Icon">
+            </a>
+        </div>
+    </div>
+
+
     <canvas id="waveCanvas"></canvas>
     <script>
         const canvas = document.getElementById('waveCanvas');
@@ -71,7 +172,7 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             // Tmavší barvy pro vlny dále v pozadí
             gradient.addColorStop(0, `rgba(255, 255, 255, ${(index + 1) * 0.2})`);  // Světlejší
-            gradient.addColorStop(1, `rgba(230, 230, 230, ${(index + 1) * 0.4})`);  // Tmavší
+            gradient.addColorStop(1, `rgba(255, 255, 255, ${(index + 1) * 0.4})`);  // Tmavší
 
             ctx.fillStyle = gradient;
             ctx.beginPath();
