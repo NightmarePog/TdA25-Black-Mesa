@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify,request, redirect
 from extensions import db, socketio
 from models import Game, User
 from user_routes import user_bp
@@ -52,10 +52,9 @@ def create_app():
     thread = threading.Thread(target=matchmaking_background_task, args=(app,))
     thread.daemon = True
     thread.start()
-
     return app
 
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=False)

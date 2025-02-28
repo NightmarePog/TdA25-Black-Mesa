@@ -312,8 +312,13 @@
           <img src="static/picture/zarivka_idea_cerne.svg" alt="GDPR">
           GDPR
         </button>
-          <button class="nav-button" onclick="window.location.href='/list'">
-              <img src="static/picture/zarivka_playing_cerne.svg" alt="List">
+          
+          <button class="nav-button" onclick="showForm('guest')">
+              <img src="static/picture/zarivka_idea_cerne.svg" alt="Play">
+              Settings
+          </button>
+          <button class="nav-button" onclick="showForm('login')">
+              <img src="static/picture/zarivka_playing_cerne.svg" alt="Login">
               Player list
           </button>
 
@@ -513,7 +518,7 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
       };
       let uuid = "";
 
-      fetch(`${window.location.origin}/api/v1/games`, {
+      fetch(`/api/v1/games`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -578,7 +583,7 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
         ranked: ranked
       };
 
-      fetch(`${window.location.origin}/api/v1/games`, {
+      fetch('https://a9334987.app.deploy.tourde.app/api/v1/games/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
