@@ -1,386 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Game Portal - Multiplayer</title>
-  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <style>
-    /* Základní styly */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: "Dosis", sans-serif;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #1A1A1A;
-      position: relative;
-    }
-    .header {
-      width: 100%;
-      padding: 15px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      position: fixed;
-      top: 0;
-      z-index: 1000;
-    }
-    .logo {
-      width: 120px;
-      margin-left: 5%;
-    }
-    .game-container {
-      margin-top: 120px;
-      width: 100%;
-      max-width: 1000px;
-      padding: 20px;
-    }
-    .game-main {
-      display: flex;
-      gap: 20px;
-      align-items: stretch;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .info-panel {
-      flex: 0 0 300px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      height: 100%;
-      min-height: 494px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      border-radius: 15px;
-      padding: 1rem;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    }
-    .game-info {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      padding: 0.8rem;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      font-weight: 600;
-      text-align: left;
-    }
-    .player-list {
-      margin-top: 1rem;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 8px;
-      padding: 0.8rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      font-weight: 600;
-      text-align: left;
-      overflow-y: auto;
-    }
-    .player-item {
-      padding: 0.8rem;
-      margin: 0.3rem 0;
-      border-radius: 8px;
-      background: transparent;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s ease;
-      cursor: default;
-    }
-    .player-item.turn {
-      background: rgba(0, 112, 187, 0.9);
-      color: white;
-      box-shadow: 0 2px 8px rgba(0, 112, 187, 0.3);
-    }
-    .board {
-      display: grid;
-      grid-template-columns: repeat(15, 28px);
-      grid-template-rows: repeat(15, 28px);
-      gap: 3px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      padding: 1rem;
-      border-radius: 15px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-      margin: 0;
-    }
-    .cell {
-      width: 28px;
-      height: 28px;
-      border: 2px solid rgba(0, 112, 187, 0.3);
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .cell:hover {
-      transform: scale(1.05);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    .cell.x {
-      background-image: url("{{ url_for('static', filename='picture/X_cervene.svg') }}");
-      background-size: 80%;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-    .cell.o {
-      background-image: url("{{ url_for('static', filename='picture/O_modre.svg') }}");
-      background-size: 80%;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-    .controls {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 2rem;
-    }
-    .game-btn {
-      padding: 12px 25px;
-      border: none;
-      border-radius: 8px;
-      background: rgba(0, 112, 187, 0.9);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(4px);
-    }
-    .game-btn:hover {
-      background: rgba(227, 24, 55, 0.9);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
-    }
-    @media (max-width: 768px) {
-      .board {
-        grid-template-columns: repeat(15, 20px);
-        grid-template-rows: repeat(15, 20px);
-      }
-      .cell {
-        width: 20px;
-        height: 20px;
-      }
-      .game-main {
-        flex-direction: column;
-        align-items: center;
-      }
-      .info-panel {
-        width: 100%;
-        margin-top: 1rem;
-        height: auto;
-      }
-    }
-    #waveCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.0.1/dist/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Dosis', sans-serif;
+        }
+
+        body {
+            background-color: #F6F6F6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: #1A1A1A;
+            text-align: center;
+            position: relative;
+        }
+
+        .game-info-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 5px; 
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .game-info {
+            background-color: #FFFFFF;
+            padding: 5px 10px; 
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0rem; 
+            font-weight: bold;
+            color: #AB2E58;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            width: 22%; /* Adjusted to fit four blocks side by side */
+        }
+
+        #gameCodeContainer {
+            font-size: 1.2rem;
+            color: #395A9A;
+        }
+
+        #gameStatusContainer, #turnContainer, #gameStateContainer {
+            font-size: 1.2rem;
+        }
+
+        #gameStatusContainer {
+            color: #AB2E58;
+        }
+
+        #gameStateContainer {
+            color: #AB2E58;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px); 
+            grid-template-rows: repeat(15, 30px); 
+            gap: 3px;
+            margin-top: 15px; 
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            justify-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 30px; 
+            height: 30px; 
+            border: 1px solid #395A9A;
+            background-color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+        }
+
+        .cell.x {
+            background-image: url('{{ url_for("static", filename="picture/X_cervene.svg") }}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .cell.o {
+            background-image: url('{{ url_for("static", filename="picture/O_modre.svg") }}');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-btn {
+            margin-top: 25px; 
+            padding: 8px 16px;
+            font-size: 1rem;
+            color: #FFFFFF;
+            background-color: #395A9A;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .game-btn:hover {
+            background-color: #1A3C6C;
+        }
+
+        .player-list {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            width: 200px;
+            font-size: 1rem;
+        }
+
+        .player-item {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item.turn {
+            background-color: #395A9A;
+            color: #FFFFFF;
+        }
+
+        @media (max-width: 600px) {
+            .game-info-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .game-info {
+                width: 80%;
+                margin: 5px 0;
+                font-size: 0.8rem; 
+            }
+
+            .board {
+                grid-template-columns: repeat(15, 25px); 
+                grid-template-rows: repeat(15, 25px);
+            }
+
+            .cell {
+                width: 25px;
+                height: 25px;
+            }
+
+            .player-list {
+                top: 10px;
+                right: 10px;
+                width: 150px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="background-container"></div>
-  <header class="header">
-    <img src="static/picture/logo_cerna.svg" class="logo" alt="Game Logo" />
-  </header>
-  <div class="game-container">
-    <div class="game-main">
-      <!-- Herní deska -->
-      <div class="board-container">
-        <div id="board" class="board"></div>
-      </div>
-      <!-- Info panel -->
-      <div class="info-panel">
-        <div class="game-info">
-          <span>Game Code: </span><span id="gameCode">Loading...</span>
+    <div class="game-info-container">
+        <div id="gameCodeContainer" class="game-info">
+            <span>Game Code: </span><span id="gameCode">Loading...</span>
         </div>
-        <div class="game-info">
-          <span>Status: </span><span id="gameStatus">Waiting for players...</span>
+        <div id="gameStatusContainer" class="game-info">
+            <span>Status: </span><span id="gameStatus">Waiting for players...</span>
         </div>
-        <div class="game-info">
-          <span>Turn: </span><span id="turn">X</span>
+        <div id="turnContainer" class="game-info">
+            <span>Turn: </span><span id="turn">X</span>
         </div>
-        <div class="game-info">
-          <span>Game State: </span><span id="gameState">Initializing...</span>
+        <div id="gameStateContainer" class="game-info">
+            <span id="gameState">Initializing...</span>
         </div>
-        <div class="player-list" id="playerList"></div>
-      </div>
     </div>
-    <div class="controls">
-      <button id="menuButton" class="game-btn">Main Menu</button>
-    </div>
-  </div>
-  <canvas id="waveCanvas"></canvas>
-  <script src="/static/js/waves.js"></script>
-  <script>
-    // --- Původní funkční logika převedená do nového layoutu ---
-    const gameUuid = window.location.pathname.split('/').pop();
-    const username = localStorage.getItem('username');
-    const userId = localStorage.getItem('userId');
-    let playerRole = "";
-    let currentTurn = "X";
-    let winner = "";
-    let winnerName = "";
-    let playerList = [];
-    let board = Array(15).fill(null).map(() => Array(15).fill(null));
-    let gameStarted = false;
-    
-    // DOM elementy
-    const boardElement = document.getElementById('board');
-    const gameStatusElement = document.getElementById('gameStatus');
-    const turnElement = document.getElementById('turn');
-    const gameStateElement = document.getElementById('gameState');
-    const gameCodeElement = document.getElementById('gameCode');
-    const playerListElement = document.getElementById('playerList');
-    
-    // Základní URL pro odhlašování
-    const fullUrl = window.location.href;
-    let baseUrl = new URL(fullUrl).origin;
-    if (!baseUrl.endsWith("/")) {
-      baseUrl += "/";
-    }
-    
-    // Inicializace Socket.io a připojení ke hře
-    const socket = io();
-    socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
-    
-    // Získání herního kódu
-    fetch(`/api/v1/games/${gameUuid}`)
-      .then(response => response.json())
-      .then(data => {
-         gameCodeElement.innerText = data.code;
-      })
-      .catch(error => {
-         console.error('Error fetching game code:', error);
-         gameCodeElement.innerText = 'Error';
-      });
-      
-    socket.on('game_update', (data) => {
-        gameStarted = data.started;
-        console.log(data.turn);
-        currentTurn = data.turn !== undefined ? data.turn : "X";
-        
-        if (data.winner) {
-            winner = data.winner;
-            for (const value in playerList) {
-                if (playerList[value].user_id == winner) {
-                    winnerName = playerList[value].username;
+
+    <div id="board" class="board"></div>
+    <div class="player-list" id="playerList"></div>
+    <button id="gameButton" class="game-btn">Go to main page</button>
+
+    <script>
+        const gameUuid = window.location.pathname.split('/').pop();
+        const username = localStorage.getItem('username');
+        const userId = localStorage.getItem('userId');
+        let playerRole = "";
+        let currentTurn = "X";
+        let winner = "";
+        let winnerName = "";
+        let playerIndex = 0;
+        let playerList = [];
+        const fullUrl = window.location.href;
+        let baseUrl = new URL(fullUrl).origin;
+        const socket = io();
+
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
+        }
+
+        let board = Array(15).fill(null).map(() => Array(15).fill(null));
+        let gameStarted = false;
+
+        fetch('/static/background.html') 
+            .then(response => response.text()) 
+            .then(data => { 
+                document.body.insertAdjacentHTML('afterbegin', data); 
+            }) 
+            .catch(error => console.error('Error loading HTML:', error));
+
+        fetch(`/api/v1/games/${gameUuid}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('gameCode').innerText = data.code;
+            })
+            .catch(error => {
+                console.error('Error fetching game code:', error);
+                document.getElementById('gameCode').innerText = 'Error';
+            });
+
+        socket.emit('join_game', { game_uuid: gameUuid, user_id: userId, username: username });
+
+        socket.on('game_update', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
+            const gameState = document.getElementById('gameState');
+            gameStarted = data.started;
+            console.log(data.turn)
+            if (data.turn !== undefined) {
+                currentTurn = data.turn;
+            } else {
+                currentTurn = "X";
+            }
+
+            if (data.winner) {
+                winner = data.winner;
+            }
+
+            if (gameStarted && winner === "") {
+                gameStatus.innerText = `Game has started!`;
+                turn.innerText = data.turn;
+            } else if (winner === "") {
+                gameStatus.innerText = 'Waiting for another player...';
+            } else {
+                for (const value in playerList) {
+                    if (playerList[value].user_id == winner) {
+                        winnerName = playerList[value].username;
+                    }
+                }
+                gameStatus.innerText = `Game over! ${winnerName} won!`;
+            }
+            console.log(data.game_status);
+            if (data.game_status) {
+                if (data.game_status === "opening") {
+                    gameState.innerText = "It's warming up";
+                } else if (data.game_status === "midgame") {
+                    gameState.innerText = "Thrilling";
+                } else if (data.game_status === "endgame") {
+                    gameState.innerText = "Could it be the end?";
+                } else {
+                    gameState.innerText = data.game_status;
                 }
             }
-            gameStatusElement.innerText = `Game over! ${winnerName} won!`;
-        } else {
-            gameStatusElement.innerText = gameStarted ? "Game has started!" : "Waiting for another player...";
-        }
-        
-        if (data.game_status) {
-            if (data.game_status === "opening") {
-                gameStateElement.innerText = "It's warming up";
-            } else if (data.game_status === "midgame") {
-                gameStateElement.innerText = "Thrilling";
-            } else if (data.game_status === "endgame") {
-                gameStateElement.innerText = "Could it be the end?";
-            } else {
-                gameStateElement.innerText = data.game_status;
+
+            if (data.board) {
+                board = data.board;
             }
-        }
-        
-        if (data.board) {
-            board = data.board;
-        }
-        if (data.players) {
+
+            updatePlayerList();
+            drawBoard();
+        });
+
+        socket.on('game_status', (data) => {
+            const gameStatus = document.getElementById('gameStatus');
+            const turn = document.getElementById('turn');
+            gameStatus.innerText = data.message;
             playerList = data.players;
+            for (const value in data.players) {
+                if (data.players[value].user_id == userId) {
+                    playerRole = data.players[value].role;
+                    playerIndex = value;
+                }
+            }
+            console.log("GAME-STATUS");
+            console.log(data);
+            updatePlayerList();
+            drawBoard();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
+            localStorage.setItem('time_from_leaving', Date.now());
+        });
+
+        function drawBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    if (cell) {
+                        cellElement.classList.add(cell.toLowerCase());
+                    }
+
+                    if (gameStarted && !cell && currentTurn === playerRole && winner === "") {
+                        cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
+                    } else {
+                        cellElement.style.cursor = 'not-allowed';
+                    }
+
+                    boardElement.appendChild(cellElement);
+                });
+            });
         }
-        updatePlayerList();
+
+        function makeMove(row, col) {
+            if (currentTurn !== playerRole) {
+                alert("It's not your turn!");
+                return;
+            }
+            if (winner !== "") {
+                alert("The game is over. No more moves can be made.");
+                return;
+            }
+
+            socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col], domain: baseUrl });
+        }
+
         drawBoard();
-    });
-    
-    socket.on('game_status', (data) => {
-       gameStatusElement.innerText = data.message;
-       if (data.players) {
-           playerList = data.players;
-       }
-       for (const value in data.players) {
-           if (data.players[value].user_id == userId) {
-               playerRole = data.players[value].role;
-           }
-       }
-       console.log("GAME-STATUS", data);
-       updatePlayerList();
-       drawBoard();
-    });
-    
-    window.addEventListener('beforeunload', () => {
-        socket.emit('player_has_disconnected', { game_uuid: gameUuid, user_id: userId, board1: board, domain: baseUrl });
-        localStorage.setItem('time_from_leaving', Date.now());
-    });
-    
-    function drawBoard() {
-      boardElement.innerHTML = '';
-      board.forEach((row, rowIndex) => {
-          row.forEach((cell, colIndex) => {
-              const cellElement = document.createElement('div');
-              cellElement.classList.add('cell');
-              if (cell) {
-                  cellElement.classList.add(cell.toLowerCase());
-              }
-              if (gameStarted && !cell && currentTurn === playerRole && !winner) {
-                  cellElement.addEventListener('click', () => makeMove(rowIndex, colIndex));
-              } else {
-                  cellElement.style.cursor = 'not-allowed';
-              }
-              boardElement.appendChild(cellElement);
-          });
-      });
-    }
-    
-    function makeMove(row, col) {
-       if (currentTurn !== playerRole) {
-           alert("It's not your turn!");
-           return;
-       }
-       if (winner !== "") {
-           alert("The game is over. No more moves can be made.");
-           return;
-       }
-       board[row][col] = currentTurn;
-       currentTurn = currentTurn === "X" ? "O" : "X";
-       socket.emit('make_move', { game_uuid: gameUuid, player_id: userId, move: [row, col], domain: baseUrl });
-    }
-    
-    function updatePlayerList() {
-       playerListElement.innerHTML = '';
-       playerList.forEach(player => {
-           const playerItem = document.createElement('div');
-           playerItem.classList.add('player-item');
-           if (player.user_id === userId) {
-               playerItem.style.fontWeight = 'bold';
-           }
-           if (currentTurn === player.role) {
-               playerItem.classList.add('turn');
-           }
-           playerItem.innerHTML = `<span>${player.username}</span> <span>${player.role}</span>`;
-           playerListElement.appendChild(playerItem);
-       });
-    }
-    
-    document.getElementById("menuButton").addEventListener("click", () => {
-       window.location.href = `/menu`;
-    });
-  </script>
+
+        function updatePlayerList() {
+            const playerListElement = document.getElementById('playerList');
+            playerListElement.innerHTML = '';
+
+            playerList.forEach(player => {
+                const playerItem = document.createElement('div');
+                playerItem.classList.add('player-item');
+                if (player.user_id === userId) {
+                    playerItem.style.fontWeight = 'bold';
+                }
+
+                if (currentTurn === player.role) {
+                    playerItem.classList.add('turn');
+                }
+
+                playerItem.innerHTML = `
+                    <span>${player.username}</span>
+                    <span>${player.role}</span>
+                `;
+
+                playerListElement.appendChild(playerItem);
+            });
+        }
+
+        document.getElementById("gameButton").addEventListener("click", () => {
+            window.location.href = `/menu`;
+        });
+
+    </script>
 </body>
 </html>
