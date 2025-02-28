@@ -359,8 +359,8 @@
                 </div>
                 <div class="input-group" id="rankedSection">
                     <select id="ranked">
-                        <option value="false">Ranked Match</option>
-                        <option value="true">Casual Match</option>
+                        <option value="true">Ranked Match</option>
+                        <option value="false">Casual Match</option>
                     </select>
                 </div>
                 <button class="action-button" id="createGame">Create Game</button>
@@ -600,6 +600,34 @@ fetch(`${window.location.origin}/api/v1/users/get_score/${userId}`)
       .catch(error => {
         console.error('Error creating game:', error);
         alert('Failed to create game.');
+        
+
+
+        fetch('/api/v1/games/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(gameData)
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to create game');
+        }
+      })
+      .then(data => {
+        console.log('Game created successfully:', data);
+        window.location.href = `/multiplayer-game/${data.uuid}`;
+      })
+      .catch(error => {
+        console.error('Error creating game:', error);
+        alert('Failed to create game.');
+      });
+
+
+
       });
     });
 
