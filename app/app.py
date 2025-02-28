@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify,request, redirect
 from extensions import db, socketio
 from models import Game, User
 from user_routes import user_bp
@@ -53,9 +53,15 @@ def create_app():
     thread.daemon = True
     thread.start()
 
+    @app.before_request
+    def force_https():
+        if not request.is_secure:  # Pokud požadavek není přes HTTPS
+            return redirect(request.url.replace("http://", "https://"))
+
+
     return app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
-    socketio.run(app, debug=True)
+    app.run(debug=False)
+    socketio.run(app, debug=False)
